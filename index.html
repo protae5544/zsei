@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Z.AI GLM-4.5 Chatbot with Code Editor</title>
+    <style>
+        body { margin: 0; padding: 0; font-family: Arial, sans-serif; display: flex; flex-direction: column; height: 100vh; }
+        #input-container { padding: 10px; background: #f0f0f0; }
+        #input { width: 80%; padding: 10px; }
+        #send { padding: 10px; }
+        #panels { flex: 1; display: flex; overflow: hidden; }
+        #chat-panel, #code-panel { flex: 1; padding: 10px; overflow-y: auto; }
+        #chat-panel { border-right: 1px solid #ccc; }
+        .message { margin-bottom: 10px; }
+        .user { text-align: right; color: blue; }
+        .ai { text-align: left; color: green; }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js"></script>
+</head>
+<body>
+    <div id="input-container">
+        <input type="text" id="input" placeholder="Type your message...">
+        <button id="send">Send</button>
+    </div>
+    <div id="panels">
+        <div id="chat-panel"></div>
+        <div id="code-panel"></div>
+    </div>
+
+    <script>
+        const chatPanel = document.getElementById('chat-panel');
+        const codePanel = document.getElementById('code-panel');
+        const input = document.getElementById('input');
+        const send = document.getElementById('send');
+
+        // Initialize Ace Editor
+        const editor = ace.edit('code-panel');
+        editor.setTheme('ace/theme/monokai');
+        editor.session.setMode('ace/mode/text'); // Default mode
+
+        send.addEventListener('click', sendMessage);
+        input.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
+
+        async function sendMessage() {
+            const userMessage = input.value.trim();
+            if (!userMessage) return;
+
+            addMessage('user', userMessage);
+            input.value = '';
+
+            try {
+                const response = await fetch('/.netlify/functions/api', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: userMessage })
+                });
+
+                if (!response.ok) throw new Error('API error');
+
+                const data = await response.json();
+                const aiResponse = data.choices[0].message.content;
+
+                addMessage('ai', aiResponse);
+                displayCode(aiResponse);
+            } catch (error) {
+                addMessage('ai', `Error: ${error.message}`);
+            }
+        }
+
+        function addMessage(sender, text) {
+            const div = document.createElement('div');
+            div.classList.add('message', sender);
+            div.textContent = text;
+            chatPanel.appendChild(div);
+            chatPanel.scrollTop = chatPanel.scrollHeight;
+        }
+
+        function displayCode(text) {
+            let mode = 'ace/mode/text';
+            if (text.includes('def ') || text.includes('import ')) mode = 'ace/mode/python';
+            else if (text.includes('function ') || text.includes('const ')) mode = 'ace/mode/javascript';
+
+            editor.session.setMode(mode);
+            editor.setValue(text, -1);
+        }
+    </script>
+</body>
+</html>
