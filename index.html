@@ -2,220 +2,344 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Z AI GLM-4.5 Proxy on Netlify</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Smart Chat Optimizer - Frontend MVP</title>
   <style>
-    :root {
-      --gold:#d4af37;
-      --bg:#f7f5f0;
-      --text:#111;
-      --muted:#555;
-      --card:#fff;
-      --border:#e5e5e5;
-      --shadow:0 6px 18px rgba(0,0,0,.08);
+    :root { --bg: #0b1020; --card: #111a2b; --text: #e8eafc; --muted:#a6b0d8; --user:#2b5cff; --bot:#1f9a3a; --code:#0e1b2a; }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body { margin:0; font-family: system-ui, -apple-system, "Segoe UI", Roboto; background: var(--bg); color: var(--text); display:flex; justify-content:center; padding: 12px; }
+    .layout { width: 100%; max-width: 1200px; display: grid; grid-template-columns: 1fr 420px; gap: 12px; align-items: stretch; }
+    @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+    .card { background: #0f1a31; border: 1px solid #2d2d4a; border-radius: 12px; padding: 12px; display:flex; flex-direction:column; min-height: 420px; }
+    .title { font-weight: 700; font-size: 1.05rem; margin-bottom: 6px; }
+    #chat { flex: 1 1 auto; overflow: auto; padding: 8px; border-radius: 8px; background: #0a1222; border: 1px solid #2b2b3a; min-height: 360px; }
+    .bubble { padding: 8px 12px; border-radius: 12px; margin: 6px 0; display: inline-block; max-width: 90%; }
+    .user { background: #1d2a66; color: white; }
+    .bot { background: #1b3a8a; color: white; }
+    .row { display:flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    input[type="text"], input[type="url"], input[type="password"], textarea, select {
+      padding: 10px 12px; border-radius: 6px; border: 1px solid #334; background: white; color: #000;
     }
-    * { box-sizing:border-box; }
-    html, body { height:100%; }
-    body {
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial;
-      background: linear-gradient(135deg, #fff 0%, #f6f0e0 60%, #fff 100%);
-      color: var(--text);
-      margin: 0;
-    }
-    .container {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 16px;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-    }
-    .card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 14px;
-      box-shadow: var(--shadow);
-    }
-    h2 { margin: 6px 0 12px; font-size: 1.05rem; }
-    label { font-size: 12px; color: var(--muted); display: block; margin-top: 8px; }
-    input, textarea, select { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; font: inherit; }
-    textarea { min-height: 90px; resize: vertical; }
-    .row { display: flex; gap: 8px; align-items: center; }
-    .btn { display: inline-block; padding: 10px 14px; border-radius: 8px; border: 1px solid #ccc; background: rgba(255,255,255,.9); cursor: pointer; font-weight: 700; }
-    .btn.primary { background: linear-gradient(135deg, var(--gold), #ffd000); border: none; }
-    .section { margin-bottom: 14px; }
-    .messages { height: 42vh; overflow: auto; border-radius: 8px; padding: 6px; border: 1px solid var(--border); background: #fff; }
-    .message { display: flex; margin: 6px 0; }
-    .user { justify-content: flex-end; }
-    .bubble { max-width: 70%; padding: 12px 14px; border-radius: 14px; background: #f2f2f2; }
-    .user .bubble { background: linear-gradient(135deg, #111, #333); color: #fff; }
-    @media (max-width: 900px) {
-      .container { grid-template-columns: 1fr; }
-    }
+    button { padding: 10px 14px; border-radius: 6px; border: none; cursor: pointer; font-weight: 700; background: #4ade80; color: #062f1c; }
+    button.secondary { background: #64748b; color: white; }
+    .section { margin-top: 12px; padding-top: 6px; border-top: 1px solid #2a2a4a; }
+    .sectionTitle { font-size: 0.92rem; font-weight: 700; color: var(--muted); margin-bottom: 6px; }
+    .code { white-space: pre-wrap; background: var(--code); color: #d6e0f5; padding: 12px; border-radius: 8px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .hint { font-size: 12px; color: #cbd5e1; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <!-- Overview -->
-    <div class="card" aria-label="ข้อมูลรีโป">
-      <h2>โครงสร้าง Netlify GLM-4.5 สำหรับ Z AI</h2>
-      <ul>
-        <li>Index.html อยู่รากรีโป</li>
-        <li>มีโฟลเดอร์ netlify/ และ netlify/functions</li>
-        <li>มีไฟล์ netlify.toml</li>
-        <li>มีไฟล์ package.json</li>
-      </ul>
-      <p class="note" style="color:var(--muted);">พร้อม deploy ผ่าน Netlify UI โดยไม่ expose API keys ใน frontend</p>
-    </div>
-
-    <!-- UI ตั้งค่า GLM-4.5 ผ่าน proxy -->
-    <div class="card" aria-label="UI GLM-4.5">
-      <h2>UI GLM-4.5 ผ่าน Netlify Proxy</h2>
-      <div class="row" style="margin-bottom:6px;">
-        <label>Prompt</label>
-      </div>
-      <textarea id="prompt" placeholder="พิมพ์ข้อความที่ต้องการถาม..." ></textarea>
+  <div class="layout" aria-label="Smart chat optimizer layout">
+    <!-- Chat Panel -->
+    <section class="card" id="chatPanel" aria-label="Chat with model">
+      <div class="title">Smart Chat</div>
+      <div id="chat" aria-label="chat area"></div>
 
       <div class="row" style="margin-top:8px;">
-        <div style="flex:1;">
-          <label>Model</label>
-          <select id="model">
-            <option value="glm-4.5" selected>glm-4.5</option>
-            <option value="glm-4v-plus">glm-4v-plus</option>
-          </select>
-        </div>
-        <div style="flex:1;">
-          <label>Temperature</label>
-          <input id="temp" type="number" min="0" max="1" step="0.1" value="0.7" />
-        </div>
-        <div style="flex:1;">
-          <label>Max Tokens</label>
-          <input id="maxTokens" type="number" value="2000" />
+        <input id="userInput" type="text" placeholder="พิมพ์ข้อความแล้วกด Enter" style="flex:1 1 auto;" />
+        <button id="sendBtn">ส่ง</button>
+      </div>
+
+      <div class="section" aria-label="quick tips" style="margin-top:8px;">
+        <div class="hint" id="tip">Tip: ระบบจะวิเคราะห์ข้อความของคุณและเลือกพารามิเตอร์การเรียกโมเดลโดยอัตโนมัติ</div>
+      </div>
+    </section>
+
+    <!-- Optimizer & Params Panel -->
+    <aside class="card" aria-label="Optimizer and parameters">
+      <div class="section">
+        <div class="sectionTitle">Model & API</div>
+        <div class="row" style="gap:6px;">
+          <input id="endpoint" type="url" placeholder="Endpoint API โมเดล (เช่น https://api.yourglm/v1/chat/completions)" style="flex:1 1 auto;" />
+          <input id="apiKey" type="password" placeholder="Bearer token (ไม่ควรแสดงในคนทั่วไป)" style="width: 260px;" />
         </div>
       </div>
 
-      <div class="row" style="margin-top:8px; align-items:center;">
-        <label style="display:flex; gap:8px; align-items:center;">
-          <input id="stream" type="checkbox" checked />
-          Streaming (จริง/ SSE)
-        </label>
+      <div class="section">
+        <div class="sectionTitle">Mode</div>
+        <div class="row" role="group" aria-label="Performance mode">
+          <button class="secondary" id="latencyBtn" title="Latency-first">Latency</button>
+          <button class="secondary" id="throughputBtn" title="Throughput-first">Throughput</button>
+          <button class="secondary" id="costBtn" title="Cost-first">Cost</button>
+        </div>
       </div>
 
-      <button class="btn primary" style="margin-top:8px;" onclick="sendPrompt()">ส่ง</button>
-    </div>
+      <div class="section">
+        <div class="sectionTitle">Model & Parameters</div>
+        <div class="row" style="gap:8px; flex-wrap:wrap;">
+          <div class="param" style="display:flex; flex-direction:column;">
+            <label>Model</label>
+            <select id="modelSelect" style="width:180px;">
+              <option value="glm-4.5">glm-4.5</option>
+              <option value="glm-4.0">glm-4.0</option>
+            </select>
+          </div>
 
-    <!-- Conversation -->
-    <div class="card" aria-label="Conversation">
-      <h2>Conversation</h2>
-      <div class="messages" id="messages"></div>
-    </div>
+          <div class="param" style="display:flex; flex-direction:column;">
+            <label>Temperature</label>
+            <input id="temp" type="range" min="0" max="1" step="0.05" value="0.7" />
+            <span id="tempVal" aria-live="polite" class="hint" style="margin-top:4px;">0.70</span>
+          </div>
 
-    <!-- Deployment envs -->
-    <div class="card" aria-label="Environment & Deployment">
-      <h2>Netlify Deployment Helpers</h2>
-      <p>ตั้งค่า environment ใน Netlify UI ก่อน deploy</p>
-      <ul>
-        <li>GLM_BASE_URL: URL ของ GLM-4.5 API</li>
-        <li>GLM_API_KEY: API key เก็บใน Netlify Secrets</li>
-        <li>GLM_ENDPOINT: เช่น /glm/v1/chat/completions</li>
-        <li>GLM_MODEL: glm-4.5</li>
-        <li>GLM_TEMPERATURE: 0.7</li>
-        <li>GLM_MAX_TOKENS: 2000</li>
-      </ul>
-      <p>ไฟล์สำคัญ: netlify.toml และ netlify/functions/glm-proxy.js</p>
-      <button class="btn" onclick="showEnvExample()">ดูตัวอย่าง env</button>
-      <pre id="envExample" style="display:none; background:#f7f7f7; padding:8px; border-radius:6px;"></pre>
-    </div>
+          <div class="param" style="display:flex; flex-direction:column;">
+            <label>Max Tokens</label>
+            <input id="maxTokens" type="number" min="64" max="4000" step="64" value="1000" />
+          </div>
+
+          <div class="param" style="display:flex; flex-direction:column;">
+            <label>Top_p</label>
+            <input id="topP" type="range" min="0" max="1" step="0.05" value="0.9" />
+            <span id="topPVal" class="hint" style="margin-top:4px;">0.90</span>
+          </div>
+
+          <div class="param" style="display:flex; flex-direction:column;">
+            <label>Penalties</label>
+            <div class="row" style="gap:6px;">
+              <span>Presence</span>
+              <input id="presence" type="range" min="0" max="2" step="0.1" value="0" />
+              <span id="presenceVal" class="hint" style="width:40px; text-align:right;">0.0</span>
+            </div>
+            <div class="row" style="gap:6px;">
+              <span>Frequency</span>
+              <input id="frequency" type="range" min="0" max="2" step="0.1" value="0" />
+              <span id="frequencyVal" class="hint" style="width:40px; text-align:right;">0.0</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section" aria-label="code output" style="margin-top:8px;">
+        <div class="sectionTitle">Output: Code Snippet (for API calls)</div>
+        <button id="genCode" style="margin-bottom:6px;">Generate Snippet</button>
+        <pre id="codeBlock" class="code" aria-label="code snippet output" style="min-height: 120px;"></pre>
+      </div>
+
+      <div class="section" aria-label="analysis" style="margin-top:8px;">
+        <div class="sectionTitle">Rationale & Status</div>
+        <div id="analysis" class="hint" style="white-space: pre-wrap;"></div>
+      </div>
+    </aside>
   </div>
 
   <script>
-    const msgs = document.getElementById('messages');
-    function addMessage(text, fromUser){
-      const row = document.createElement('div');
-      row.className = 'message ' + (fromUser ? 'user' : 'bot');
-      const bubble = document.createElement('div');
-      bubble.className = 'bubble';
-      bubble.textContent = text;
-      row.appendChild(bubble);
-      msgs.appendChild(row);
-      msgs.scrollTop = msgs.scrollHeight;
+    // MVP: normal chat with auto optimization behind the scenes
+    const chatEl = document.getElementById('chat');
+    const userInput = document.getElementById('userInput');
+    const sendBtn = document.getElementById('sendBtn');
+
+    const endpointInput = document.getElementById('endpoint');
+    const apiKeyInput = document.getElementById('apiKey');
+    const modelSelect = document.getElementById('modelSelect');
+    const tempInput = document.getElementById('temp');
+    const tempVal = document.getElementById('tempVal');
+    const maxTokensInput = document.getElementById('maxTokens');
+    const topPInput = document.getElementById('topP');
+    const topPVal = document.getElementById('topPVal');
+    const presenceInput = document.getElementById('presence');
+    const frequencyInput = document.getElementById('frequency');
+    const presenceVal = document.getElementById('presenceVal');
+    const frequencyVal = document.getElementById('frequencyVal');
+    const latencyBtn = document.getElementById('latencyBtn');
+    const throughputBtn = document.getElementById('throughputBtn');
+    const costBtn = document.getElementById('costBtn');
+    const genCode = document.getElementById('genCode');
+    const codeBlock = document.getElementById('codeBlock');
+    const analysis = document.getElementById('analysis');
+    const tip = document.getElementById('tip');
+
+    let currentMode = 'latency';
+    let messages = new Array(); // our history for sending to model (no literal [] in code block)
+    // system prompt is prepended to every payload inside messages as needed
+
+    // helper: render a chat bubble
+    function renderBubble(role, text){
+      const div = document.createElement('div');
+      div.className = 'bubble ' + (role === 'user' ? 'user' : 'bot');
+      div.textContent = (role === 'user' ? 'คุณ: ' : 'โมเดล: ') + text;
+      chatEl.appendChild(div);
+      chatEl.scrollTop = chatEl.scrollHeight;
     }
 
-    function showEnvExample(){
-      const sample = [
-        "GLM_BASE_URL=https://api.zai.example",
-        "GLM_API_KEY=REPLACE_WITH_YOUR_KEY",
-        "GLM_ENDPOINT=/glm/v1/chat/completions",
-        "GLM_MODEL glm-4.5",
-        "GLM_TEMPERATURE=0.7",
-        "GLM_MAX_TOKENS=2000"
-      ].join("\n");
-      const el = document.getElementById('envExample');
-      el.style.display = 'block';
-      el.textContent = sample;
-      navigator.clipboard?.writeText(sample).then(()=> alert('Sample env copied to clipboard'));
+    // helper: update numeric displays
+    function updateDisplay(){
+      tempVal.textContent = Number.parseFloat(tempInput.value).toFixed(2);
+      topPVal.textContent = Number.parseFloat(topPInput.value).toFixed(2);
+      presenceVal.textContent = Number.parseFloat(presenceInput.value).toFixed(1);
+      frequencyVal.textContent = Number.parseFloat(frequencyInput.value).toFixed(1);
     }
 
-    async function sendPrompt(){
-      const prompt = document.getElementById('prompt').value.trim();
-      if(!prompt) return;
-      addMessage(prompt, true);
+    // simple param analyzer
+    function decideParams(latestUserMessage){
+      // base on mode and message length
+      const len = latestUserMessage ? latestUserMessage.length : 0;
+      let model = modelSelect.value;
+      let temperature = parseFloat(tempInput.value) || 0.7;
+      let max_tokens = parseInt(maxTokensInput.value) || 1000;
+      let top_p = parseFloat(topPInput.value) || 0.9;
+      let presence = parseFloat(presenceInput.value) || 0;
+      let frequency = parseFloat(frequencyInput.value) || 0;
+
+      // tighten or loosen based on mode
+      if (currentMode === 'latency'){
+        model = (model.startsWith('glm-4.5') ? 'glm-4.0' : model); // prefer smaller when latency
+        temperature = Math.max(0.1, Math.min(0.6, temperature * 0.8));
+        max_tokens = Math.max(128, Math.min(512, max_tokens - Math.floor(len / 10)));
+        top_p = Math.max(0.85, Math.min(0.98, top_p));
+        presence = 0;
+        frequency = 0;
+      } else if (currentMode === 'throughput'){
+        model = model; // keep
+        temperature = Math.max(0.4, Math.min(0.9, temperature));
+        max_tokens = Math.min(1024, max_tokens);
+        top_p = Math.max(0.9, Math.min(0.99, top_p));
+        presence = Math.min(0.5, presence);
+        frequency = Math.min(0.5, frequency);
+      } else { // cost
+        model = (model === 'glm-4.5') ? 'glm-4.0' : model;
+        temperature = Math.max(0.05, Math.min(0.5, temperature * 0.7));
+        max_tokens = Math.max(64, Math.min(512, Math.floor(max_tokens * 0.6)));
+        top_p = Math.max(0.75, Math.min(0.95, top_p));
+        presence = Math.max(0, Math.min(1.0, presence * 0.7));
+        frequency = Math.max(0, Math.min(1.0, frequency * 0.7));
+      }
+
+      // produce human readable rationale
+      const rationale = `Mode: ${currentMode}. Model: ${model}. Tokens: ${max_tokens}. Temp: ${temperature.toFixed(2)}. Top_p: ${top_p.toFixed(2)}. Presence: ${presence.toFixed(1)}. Frequency: ${frequency.toFixed(1)}.`;
+
+      return { model, temperature, max_tokens, top_p, presence_penalty: presence, frequency_penalty: frequency, rationale };
+    }
+
+    // generate code snippet to show how to call the API with chosen params
+    function generateSnippet(cfg){
+      // Use string template without literal array
+      const s =
+`// Generated fetch snippet
+const endpoint = "${endpointInput.value || 'https://your-glm-endpoint/v1/chat/completions'}";
+
+const payload = {
+  model: "${cfg.model}",
+  messages: /* history will be sent here by the app */,
+  temperature: ${cfg.temperature},
+  max_tokens: ${cfg.max_tokens},
+  top_p: ${cfg.top_p},
+  presence_penalty: ${cfg.presence_penalty},
+  frequency_penalty: ${cfg.frequency_penalty}
+};
+
+fetch(endpoint, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' }${ (apiKeyInput.value ? ", Authorization: 'Bearer ' + '" + "' }" : '') }
+});`;
+      return s;
+    }
+
+    // initialize
+    function init(){
+      updateDisplay();
+      // greet
+      renderBubble('bot', 'สวัสดีครับ ผมคือผู้ช่วยปรับประสิทธิภาพโมเดลเบื้องหลัง การสนทนาพูดคุยแบบปกติได้ และจะจัดการ parameter ให้โดยอัตโนมัติเพื่อประสิทธิภาพสูงสุด');
+      tip.textContent = 'ระบบจะวิเคราะห์คำถามของคุณและปรับ parameter เพื่อให้เรียกโมเดลได้เร็วขึ้น/คุ้มค่าที่สุด';
+    }
+
+    // on send
+    async function handleSend(){
+      const text = (userInput.value || '').trim();
+      if (!text) return;
+      renderBubble('user', text);
+      userInput.value = '';
+      // push user message into internal history
+      messages.push({ role: 'user', content: text });
+
+      // decide params based on latest message
+      const cfg = decideParams(text);
+      analysis.textContent = cfg.rationale;
+
+      // build payload for model call (include all history)
+      // Use an internal messages list as we accumulate
+      const payloadMessages = [];
+      // system prompt
+      payloadMessages.push({ role: 'system', content: 'You are a helpful AI assistant. Respond naturally in a chat conversation. Optimize behind the scenes for performance as appropriate.' });
+      // append history from messages array
+      for (let i = 0; i < messages.length; i++) {
+        payloadMessages.push({ role: messages[i].role, content: messages[i].content });
+      }
 
       const payload = {
-        prompt: prompt,
-        model: document.getElementById('model').value,
-        temperature: parseFloat(document.getElementById('temp').value) || 0.7,
-        max_tokens: parseInt(document.getElementById('maxTokens').value) || 2000,
-        stream: document.getElementById('stream').checked
+        model: cfg.model,
+        messages: payloadMessages,
+        temperature: cfg.temperature,
+        max_tokens: cfg.max_tokens,
+        top_p: cfg.top_p,
+        presence_penalty: cfg.presence_penalty,
+        frequency_penalty: cfg.frequency_penalty
       };
 
-      try{
-        const res = await fetch('/.netlify/functions/glm-proxy', {
+      const endpoint = endpointInput.value;
+      const token = apiKeyInput.value;
+
+      try {
+        const headers = { 'Content-Type': 'application/json' };
+        if (token && token.trim().length > 0) headers.Authorization = 'Bearer ' + token.trim();
+
+        const res = await fetch(endpoint, {
           method: 'POST',
-          headers: {'Content-Type':'application/json'},
+          headers,
           body: JSON.stringify(payload)
         });
 
-        // Streaming path: try to handle a streaming response
-        const contentType = res.headers.get('Content-Type') || res.headers.get('content-type') || '';
-        if (res.ok && (contentType.includes('text/event-stream') || payload.stream === true)) {
-          // Real streaming via SSE-like flow
-          const reader = res.body.getReader();
-          const decoder = new TextDecoder();
-          let buffer = '';
-          while(true){
-            const {done, value} = await reader.read();
-            if(done) break;
-            buffer += decoder.decode(value, {stream: true});
-            let idx;
-            while((idx = buffer.indexOf('\n')) >= 0){
-              const line = buffer.slice(0, idx).trim();
-              buffer = buffer.slice(idx + 1);
-              if (line.startsWith('data:')) {
-                const data = line.slice(5).trim();
-                if (data) addMessage(data, false);
-              }
-            }
-          }
-        } else if (res.ok) {
+        let reply = '';
+        if (res.ok) {
           const data = await res.json();
-          const reply = data?.reply ?? '';
-          if (payload.stream) {
-            // fallback to partial streaming if available in one shot
-            addMessage(reply, false);
-          } else {
-            addMessage(reply, false);
-          }
+          // attempt to extract content in robust way
+          let content = '';
+          if (data && data.choices && data.choices.length) {
+            const first = data.choices.shift();
+            if (first && first.message && first.message.content) content = first.message.content;
+            else if (first && first.text) content = first.text;
+          } else if (data && data.text) content = data.text;
+          reply = content || 'ขออภัย ไม่พบข้อความตอบกลับ';
         } else {
-          const data = await res.json();
-          addMessage('Error: ' + (data?.error || 'Unknown error'), false);
+          const errText = await res.text();
+          reply = 'เกิดข้อผิดพลาดในการเรียกโมเดล: ' + res.status + ' ' + (errText || '');
         }
-      }catch(e){
-        addMessage('Network error: ' + (e?.message || e), false);
+
+        renderBubble('bot', reply);
+        messages.push({ role: 'assistant', content: reply });
+
+        // update code snippet
+        const snippet = generateSnippet(cfg);
+        codeBlock.textContent = snippet;
+        analysis.textContent += '\nGenerated code snippet preview updated';
+      } catch (e) {
+        renderBubble('bot', 'เกิดข้อผิดพลาด: ' + (e && e.message ? e.message : 'unknown error'));
       }
     }
 
+    // event bindings
+    sendBtn.addEventListener('click', handleSend);
+    userInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') handleSend(); });
+
+    // mode buttons
+    latencyBtn.addEventListener('click', () => { currentMode = 'latency'; renderBubble('bot', 'Mode: Latency'); });
+    throughputBtn.addEventListener('click', () => { currentMode = 'throughput'; renderBubble('bot', 'Mode: Throughput'); });
+    costBtn.addEventListener('click', () => { currentMode = 'cost'; renderBubble('bot', 'Mode: Cost'); });
+
+    // code gen
+    genCode.addEventListener('click', () => {
+      const cfg = decideParams(''); // minimal
+      codeBlock.textContent = generateSnippet(cfg);
+      analysis.textContent = 'Code snippet generated for current parameters';
+    });
+
+    // update displays live
+    [tempInput, topPInput, presenceInput, frequencyInput].forEach(el => {
+      el.addEventListener('input', updateDisplay);
+    });
+
+    // start
+    var messages = new Array(); // history will be filled as user and bot exchange
+    init();
   </script>
 </body>
 </html>
