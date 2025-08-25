@@ -1,4 +1,3 @@
-<!-- interactive web application: GLM-4.5 Proxy Playground for Z AI on Netlify -->
 <!DOCTYPE html>
 <html lang="th">
 <head>
@@ -58,21 +57,21 @@
 </head>
 <body>
   <div class="container">
-    <!-- Decorative header -->
-    <div class="card" aria-label="ข้อมูลรีโปร">
+    <!-- Overview -->
+    <div class="card" aria-label="ข้อมูลรี포">
       <h2>โครงสร้าง Netlify GLM-4.5 สำหรับ Z AI</h2>
       <ul>
-        <li>Index.html อยู่ราก repo</li>
+        <li>Index.html อยู่รากรีโพ</li>
         <li>มีโฟลเดอร์ netlify/ และ netlify/functions</li>
         <li>มีไฟล์ netlify.toml</li>
-        <li>มีไฟล์ package.json (ถ้าต้องการ dependencies เพิ่มเติม)</li>
+        <li>มีไฟล์ package.json</li>
       </ul>
-      <p class="note" style="color:var(--muted);">โปรเจ็กต์พร้อมสำหรับ deploy ผ่าน Netlify UI โดยไม่ต้อง expose API keys ใน frontend</p>
+      <p class="note" style="color:var(--muted);">พร้อม deploy ผ่าน Netlify UI โดยไม่ expose API keys ใน frontend</p>
     </div>
 
-    <!-- UI สำหรับเรียก GLM-4.5 ผ่าน proxy -->
-    <div class="card" aria-label="Configuration & UI">
-      <h2>UI ตั้งค่า GLM-4.5</h2>
+    <!-- UI ตั้งค่า GLM-4.5 ผ่าน proxy -->
+    <div class="card" aria-label="UI GLM-4.5">
+      <h2>UI GLM-4.5 ผ่าน Netlify Proxy</h2>
       <div class="row" style="margin-bottom:6px;">
         <label>Prompt</label>
       </div>
@@ -106,25 +105,25 @@
       <button class="btn primary" style="margin-top:8px;" onclick="sendPrompt()">ส่ง</button>
     </div>
 
-    <!-- Output / Conversation -->
+    <!-- Conversation -->
     <div class="card" aria-label="Conversation">
       <h2>Conversation</h2>
       <div class="messages" id="messages"></div>
     </div>
 
-    <!-- Deployment helper/envs -->
+    <!-- Deployment envs -->
     <div class="card" aria-label="Environment & Deployment">
       <h2>Netlify Deployment Helpers</h2>
-      <p>Environment variables ที่ควรตั้งค่าใน Netlify UI</p>
+      <p>ตั้งค่า environment ใน Netlify UI ก่อน deploy</p>
       <ul>
         <li>GLM_BASE_URL: URL ของ GLM-4.5 API</li>
-        <li>GLM_API_KEY: API key (เก็บเป็น Secret)</li>
+        <li>GLM_API_KEY: API key เก็บใน Netlify Secrets</li>
         <li>GLM_ENDPOINT: เช่น /glm/v1/chat/completions</li>
         <li>GLM_MODEL: glm-4.5</li>
         <li>GLM_TEMPERATURE: 0.7</li>
         <li>GLM_MAX_TOKENS: 2000</li>
       </ul>
-      <p>ไฟล์ที่เกี่ยวข้อง: netlify.toml และ netlify/functions/glm-proxy.js</p>
+      <p>ไฟล์สำคัญ: netlify.toml และ netlify/functions/glm-proxy.js</p>
       <button class="btn" onclick="showEnvExample()">ดูตัวอย่าง env</button>
       <pre id="envExample" style="display:none; background:#f7f7f7; padding:8px; border-radius:6px;"></pre>
     </div>
@@ -145,13 +144,13 @@
 
     function showEnvExample(){
       const sample = [
-        "GLM_BASE_URL=https://api.zai.example", 
+        "GLM_BASE_URL=https://api.zai.example",
         "GLM_API_KEY=REPLACE_WITH_YOUR_KEY",
         "GLM_ENDPOINT=/glm/v1/chat/completions",
         "GLM_MODEL glm-4.5",
         "GLM_TEMPERATURE=0.7",
         "GLM_MAX_TOKENS=2000"
-      ].join("\\n");
+      ].join("\n");
       const el = document.getElementById('envExample');
       el.style.display = 'block';
       el.textContent = sample;
@@ -166,8 +165,8 @@
       const payload = {
         prompt: prompt,
         model: document.getElementById('model').value,
-        temperature: parseFloat(document.getElementById('temp').value) || 0.7,
-        max_tokens: parseInt(document.getElementById('maxTokens').value) || 2000,
+        temperature: parseFloat(document.getElementById('temp').value) || 0.3,
+        max_tokens: parseInt(document.getElementById('maxTokens').value) || 90000,
         stream: document.getElementById('stream').checked
       };
 
