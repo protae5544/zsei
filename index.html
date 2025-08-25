@@ -3,343 +3,2233 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Smart Chat Optimizer - Frontend MVP</title>
+  <title>AI Code Generator - Responsive Chatbot</title>
   <style>
-    :root { --bg: #0b1020; --card: #111a2b; --text: #e8eafc; --muted:#a6b0d8; --user:#2b5cff; --bot:#1f9a3a; --code:#0e1b2a; }
-    * { box-sizing: border-box; }
-    html, body { height: 100%; }
-    body { margin:0; font-family: system-ui, -apple-system, "Segoe UI", Roboto; background: var(--bg); color: var(--text); display:flex; justify-content:center; padding: 12px; }
-    .layout { width: 100%; max-width: 1200px; display: grid; grid-template-columns: 1fr 420px; gap: 12px; align-items: stretch; }
-    @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
-    .card { background: #0f1a31; border: 1px solid #2d2d4a; border-radius: 12px; padding: 12px; display:flex; flex-direction:column; min-height: 420px; }
-    .title { font-weight: 700; font-size: 1.05rem; margin-bottom: 6px; }
-    #chat { flex: 1 1 auto; overflow: auto; padding: 8px; border-radius: 8px; background: #0a1222; border: 1px solid #2b2b3a; min-height: 360px; }
-    .bubble { padding: 8px 12px; border-radius: 12px; margin: 6px 0; display: inline-block; max-width: 90%; }
-    .user { background: #1d2a66; color: white; }
-    .bot { background: #1b3a8a; color: white; }
-    .row { display:flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-    input[type="text"], input[type="url"], input[type="password"], textarea, select {
-      padding: 10px 12px; border-radius: 6px; border: 1px solid #334; background: white; color: #000;
+    :root { 
+      --bg: #0b1020; 
+      --card: #111a2b; 
+      --text: #e8eafc; 
+      --muted: #a6b0d8; 
+      --user: #2b5cff; 
+      --bot: #1f9a3a; 
+      --code: #0e1b2a; 
+      --accent: #4ade80;
+      --border: #2d2d4a;
     }
-    button { padding: 10px 14px; border-radius: 6px; border: none; cursor: pointer; font-weight: 700; background: #4ade80; color: #062f1c; }
-    button.secondary { background: #64748b; color: white; }
-    .section { margin-top: 12px; padding-top: 6px; border-top: 1px solid #2a2a4a; }
-    .sectionTitle { font-size: 0.92rem; font-weight: 700; color: var(--muted); margin-bottom: 6px; }
-    .code { white-space: pre-wrap; background: var(--code); color: #d6e0f5; padding: 12px; border-radius: 8px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
-    .hint { font-size: 12px; color: #cbd5e1; }
+    
+    * { 
+      box-sizing: border-box; 
+      margin: 0; 
+      padding: 0; 
+    }
+    
+    html, body { 
+      height: 100%; 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: var(--bg); 
+      color: var(--text); 
+      line-height: 1.6;
+    }
+    
+    .container {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 16px;
+      gap: 16px;
+    }
+    
+    .header {
+      background: linear-gradient(135deg, var(--card), #1a2332);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      text-align: center;
+    }
+    
+    .header h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent), #06b6d4);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+    }
+    
+    .header p {
+      color: var(--muted);
+      font-size: 1rem;
+    }
+    
+    .main-content {
+      display: grid;
+      grid-template-columns: 1fr 400px;
+      gap: 16px;
+      flex: 1;
+      min-height: 0;
+    }
+    
+    @media (max-width: 1024px) {
+      .main-content {
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr auto;
+      }
+      .controls {
+        order: -1;
+        max-height: 300px;
+        overflow-y: auto;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .container {
+        padding: 8px;
+        gap: 8px;
+      }
+      .header {
+        padding: 16px;
+      }
+      .header h1 {
+        font-size: 1.5rem;
+      }
+    }
+    
+    .chat-panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      min-height: 500px;
+    }
+    
+    .chat-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .chat-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+    
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.875rem;
+      color: var(--muted);
+    }
+    
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--accent);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      background: #0a1222;
+      border: 1px solid #2b2b3a;
+      border-radius: 12px;
+      margin-bottom: 16px;
+      scroll-behavior: smooth;
+    }
+    
+    .message {
+      display: flex;
+      margin-bottom: 16px;
+      animation: fadeInUp 0.3s ease-out;
+    }
+    
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .message.user {
+      justify-content: flex-end;
+    }
+    
+    .message-content {
+      max-width: 80%;
+      padding: 12px 16px;
+      border-radius: 16px;
+      position: relative;
+    }
+    
+    .message.user .message-content {
+      background: linear-gradient(135deg, var(--user), #3b82f6);
+      color: white;
+      border-bottom-right-radius: 4px;
+    }
+    
+    .message.bot .message-content {
+      background: linear-gradient(135deg, #1e293b, #334155);
+      border: 1px solid var(--border);
+      border-bottom-left-radius: 4px;
+    }
+    
+    .message-content pre {
+      background: var(--code);
+      padding: 12px;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 8px 0;
+      font-family: 'Fira Code', 'Monaco', 'Consolas', monospace;
+      font-size: 0.875rem;
+      border: 1px solid #374151;
+    }
+    
+    .input-area {
+      display: flex;
+      gap: 12px;
+      align-items: flex-end;
+    }
+    
+    .input-wrapper {
+      flex: 1;
+      position: relative;
+    }
+    
+    .chat-input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid var(--border);
+      border-radius: 24px;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 1rem;
+      outline: none;
+      transition: all 0.3s ease;
+      resize: none;
+      max-height: 120px;
+      min-height: 48px;
+    }
+    
+    .chat-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.1);
+    }
+    
+    .send-button {
+      padding: 12px 24px;
+      background: linear-gradient(135deg, var(--accent), #22c55e);
+      color: #065f46;
+      border: none;
+      border-radius: 24px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+    }
+    
+    .send-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(74, 222, 128, 0.3);
+    }
+    
+    .send-button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    .controls {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      overflow-y: auto;
+    }
+    
+    .control-section {
+      margin-bottom: 24px;
+    }
+    
+    .control-section:last-child {
+      margin-bottom: 0;
+    }
+    
+    .section-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--accent);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .form-group {
+      margin-bottom: 16px;
+    }
+    
+    .form-label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    
+    .form-input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 0.875rem;
+      transition: all 0.3s ease;
+    }
+    
+    .form-input:focus {
+      border-color: var(--accent);
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.1);
+    }
+    
+    .button-group {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    
+    .toggle-button {
+      padding: 8px 16px;
+      border: 2px solid var(--border);
+      border-radius: 20px;
+      background: transparent;
+      color: var(--muted);
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .toggle-button.active {
+      background: var(--accent);
+      color: #065f46;
+      border-color: var(--accent);
+    }
+    
+    .toggle-button:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    
+    .range-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .range-input {
+      flex: 1;
+      -webkit-appearance: none;
+      height: 4px;
+      border-radius: 2px;
+      background: var(--border);
+      outline: none;
+    }
+    
+    .range-input::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+    }
+    
+    .range-value {
+      font-size: 0.875rem;
+      color: var(--accent);
+      font-weight: 500;
+      min-width: 40px;
+      text-align: right;
+    }
+    
+    .code-output {
+      background: var(--code);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      font-family: 'Fira Code', 'Monaco', 'Consolas', monospace;
+      font-size: 0.75rem;
+      white-space: pre-wrap;
+      overflow-x: auto;
+      max-height: 200px;
+      color: #94a3b8;
+      line-height: 1.5;
+    }
+    
+    .tips {
+      background: linear-gradient(135deg, #1e293b, #334155);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 16px;
+    }
+    
+    .tips-title {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+    
+    .tip-item {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    
+    .loading {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid var(--border);
+      border-radius: 50%;
+      border-top-color: var(--accent);
+      animation: spin 1s ease-in-out infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    @media (max-width: 480px) {
+      .input-area {
+        flex-direction: column;
+        gap: 8px;
+      }
+      
+      .send-button {
+        align-self: stretch;
+      }
+      
+      .button-group {
+        flex-direction: column;
+      }
+      
+      .range-group {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 6px;
+      }
+      
+      .range-value {
+        text-align: left;
+      }
+    }
   </style>
 </head>
 <body>
-  <div class="layout" aria-label="Smart chat optimizer layout">
-    <!-- Chat Panel -->
-    <section class="card" id="chatPanel" aria-label="Chat with model">
-      <div class="title">Smart Chat</div>
-      <div id="chat" aria-label="chat area"></div>
+  <div class="container">
+    <header class="header">
+      <h1>🤖 AI Code Generator</h1>
+      <p>สร้างโค้ดเว็บไซต์ด้วย AI - รองรับ HTML, CSS, JavaScript และ React</p>
+    </header>
 
-      <div class="row" style="margin-top:8px;">
-        <input id="userInput" type="text" placeholder="พิมพ์ข้อความแล้วกด Enter" style="flex:1 1 auto;" />
-        <button id="sendBtn">ส่ง</button>
-      </div>
-
-      <div class="section" aria-label="quick tips" style="margin-top:8px;">
-        <div class="hint" id="tip">Tip: ระบบจะวิเคราะห์ข้อความของคุณและเลือกพารามิเตอร์การเรียกโมเดลโดยอัตโนมัติ</div>
-      </div>
-    </section>
-
-    <!-- Optimizer & Params Panel -->
-    <aside class="card" aria-label="Optimizer and parameters">
-      <div class="section">
-        <div class="sectionTitle">Model & API</div>
-        <div class="row" style="gap:6px;">
-          <input id="endpoint" type="url" placeholder="Endpoint API โมเดล (เช่น https://api.yourglm/v1/chat/completions)" style="flex:1 1 auto;" />
-          <input id="apiKey" type="password" placeholder="Bearer token (ไม่ควรแสดงในคนทั่วไป)" style="width: 260px;" />
+    <div class="main-content">
+      <div class="chat-panel">
+        <div class="chat-header">
+          <div class="chat-title">💬 Chat & Code</div>
+          <div class="status-indicator">
+            <div class="status-dot"></div>
+            <span>พร้อมใช้งาน</span>
+          </div>
         </div>
-      </div>
 
-      <div class="section">
-        <div class="sectionTitle">Mode</div>
-        <div class="row" role="group" aria-label="Performance mode">
-          <button class="secondary" id="latencyBtn" title="Latency-first">Latency</button>
-          <button class="secondary" id="throughputBtn" title="Throughput-first">Throughput</button>
-          <button class="secondary" id="costBtn" title="Cost-first">Cost</button>
-        </div>
-      </div>
-
-      <div class="section">
-        <div class="sectionTitle">Model & Parameters</div>
-        <div class="row" style="gap:8px; flex-wrap:wrap;">
-          <div class="param" style="display:flex; flex-direction:column;">
-            <label>Model</label>
-            <select id="modelSelect" style="width:180px;">
-              <option value="glm-4.5">glm-4.5</option>
-              <option value="glm-4.0">glm-4.0</option>
-            </select>
-          </div>
-
-          <div class="param" style="display:flex; flex-direction:column;">
-            <label>Temperature</label>
-            <input id="temp" type="range" min="0" max="1" step="0.05" value="0.7" />
-            <span id="tempVal" aria-live="polite" class="hint" style="margin-top:4px;">0.70</span>
-          </div>
-
-          <div class="param" style="display:flex; flex-direction:column;">
-            <label>Max Tokens</label>
-            <input id="maxTokens" type="number" min="64" max="4000" step="64" value="1000" />
-          </div>
-
-          <div class="param" style="display:flex; flex-direction:column;">
-            <label>Top_p</label>
-            <input id="topP" type="range" min="0" max="1" step="0.05" value="0.9" />
-            <span id="topPVal" class="hint" style="margin-top:4px;">0.90</span>
-          </div>
-
-          <div class="param" style="display:flex; flex-direction:column;">
-            <label>Penalties</label>
-            <div class="row" style="gap:6px;">
-              <span>Presence</span>
-              <input id="presence" type="range" min="0" max="2" step="0.1" value="0" />
-              <span id="presenceVal" class="hint" style="width:40px; text-align:right;">0.0</span>
-            </div>
-            <div class="row" style="gap:6px;">
-              <span>Frequency</span>
-              <input id="frequency" type="range" min="0" max="2" step="0.1" value="0" />
-              <span id="frequencyVal" class="hint" style="width:40px; text-align:right;">0.0</span>
+        <div class="chat-messages" id="chatMessages">
+          <div class="message bot">
+            <div class="message-content">
+              <strong>🎯 ยินดีต้อนรับสู่ AI Code Generator!</strong><br><br>
+              ผมสามารถช่วยคุณสร้างโค้ดได้หลากหลายประเภท:<br>
+              • 🌐 เว็บไซต์ HTML/CSS/JS<br>
+              • ⚛️ React Components<br>
+              • 📱 Responsive Design<br>
+              • 🎨 Modern UI/UX<br>
+              • 🔧 Interactive Features<br><br>
+              <em>ลองถามผม "สร้างเกมงูกินหาง" หรือ "ทำเว็บไซต์โปรไฟล์" ดูสิ!</em>
             </div>
           </div>
         </div>
+
+        <div class="input-area">
+          <div class="input-wrapper">
+            <textarea 
+              id="userInput" 
+              class="chat-input" 
+              placeholder="พิมพ์คำสั่งที่ต้องการ เช่น 'สร้างเกมโปงพาง' หรือ 'ทำแอพแปลงสกุลเงิน'"
+              rows="1"
+            ></textarea>
+          </div>
+          <button id="sendBtn" class="send-button">
+            <span id="sendText">ส่ง</span>
+            <div id="loadingSpinner" class="loading" style="display: none;"></div>
+          </button>
+        </div>
       </div>
 
-      <div class="section" aria-label="code output" style="margin-top:8px;">
-        <div class="sectionTitle">Output: Code Snippet (for API calls)</div>
-        <button id="genCode" style="margin-bottom:6px;">Generate Snippet</button>
-        <pre id="codeBlock" class="code" aria-label="code snippet output" style="min-height: 120px;"></pre>
-      </div>
+      <div class="controls">
+        <div class="control-section">
+          <div class="section-title">🎯 โหมดการทำงาน</div>
+          <div class="button-group">
+            <button class="toggle-button active" data-mode="web">🌐 Web App</button>
+            <button class="toggle-button" data-mode="react">⚛️ React</button>
+            <button class="toggle-button" data-mode="game">🎮 Game</button>
+            <button class="toggle-button" data-mode="ui">🎨 UI/UX</button>
+          </div>
+        </div>
 
-      <div class="section" aria-label="analysis" style="margin-top:8px;">
-        <div class="sectionTitle">Rationale & Status</div>
-        <div id="analysis" class="hint" style="white-space: pre-wrap;"></div>
+        <div class="control-section">
+          <div class="section-title">⚙️ การตั้งค่า</div>
+          
+          <div class="form-group">
+            <label class="form-label">🎨 ธีม</label>
+            <div class="button-group">
+              <button class="toggle-button active" data-theme="dark">🌙 Dark</button>
+              <button class="toggle-button" data-theme="light">☀️ Light</button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">📐 ความซับซ้อน</label>
+            <div class="range-group">
+              <input type="range" class="range-input" id="complexityRange" min="1" max="5" value="3">
+              <span class="range-value" id="complexityValue">3</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">📱 Responsive</label>
+            <div class="button-group">
+              <button class="toggle-button active" data-responsive="true">✅ เปิด</button>
+              <button class="toggle-button" data-responsive="false">❌ ปิด</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-section">
+          <div class="section-title">📋 ข้อมูลโค้ด</div>
+          <div class="code-output" id="codeStats">
+            🔧 สถิติโค้ด:<br>
+            📄 ไฟล์: 0<br>
+            📏 บรรทัด: 0<br>
+            🏷️ ประเภท: -<br>
+            ⚡ เวอร์ชัน: 1.0
+          </div>
+        </div>
+
+        <div class="tips">
+          <div class="tips-title">💡 เคล็ดลับ</div>
+          <div class="tip-item">• ระบุรายละเอียดให้ชัดเจน</div>
+          <div class="tip-item">• ใช้คำศัพท์เทคนิคได้</div>
+          <div class="tip-item">• สามารถขอแก้ไขโค้ดได้</div>
+          <div class="tip-item">• รองรับภาษาไทยและอังกฤษ</div>
+        </div>
       </div>
-    </aside>
+    </div>
   </div>
 
   <script>
-    // MVP: normal chat with auto optimization behind the scenes
-    const chatEl = document.getElementById('chat');
+    // Global state
+    let currentMode = 'web';
+    let currentTheme = 'dark';
+    let isResponsive = true;
+    let complexity = 3;
+    let isLoading = false;
+    let messageCount = 0;
+
+    // DOM elements
+    const chatMessages = document.getElementById('chatMessages');
     const userInput = document.getElementById('userInput');
     const sendBtn = document.getElementById('sendBtn');
+    const sendText = document.getElementById('sendText');
+    const loadingSpinner = document.getElementById('loadingSpinner');
+    const complexityRange = document.getElementById('complexityRange');
+    const complexityValue = document.getElementById('complexityValue');
+    const codeStats = document.getElementById('codeStats');
 
-    const endpointInput = document.getElementById('endpoint');
-    const apiKeyInput = document.getElementById('apiKey');
-    const modelSelect = document.getElementById('modelSelect');
-    const tempInput = document.getElementById('temp');
-    const tempVal = document.getElementById('tempVal');
-    const maxTokensInput = document.getElementById('maxTokens');
-    const topPInput = document.getElementById('topP');
-    const topPVal = document.getElementById('topPVal');
-    const presenceInput = document.getElementById('presence');
-    const frequencyInput = document.getElementById('frequency');
-    const presenceVal = document.getElementById('presenceVal');
-    const frequencyVal = document.getElementById('frequencyVal');
-    const latencyBtn = document.getElementById('latencyBtn');
-    const throughputBtn = document.getElementById('throughputBtn');
-    const costBtn = document.getElementById('costBtn');
-    const genCode = document.getElementById('genCode');
-    const codeBlock = document.getElementById('codeBlock');
-    const analysis = document.getElementById('analysis');
-    const tip = document.getElementById('tip');
+    // Auto-resize textarea
+    userInput.addEventListener('input', function() {
+      this.style.height = 'auto';
+      this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+    });
 
-    let currentMode = 'latency';
-    let messages = new Array(); // our history for sending to model (no literal [] in code block)
-    // system prompt is prepended to every payload inside messages as needed
+    // Update complexity value
+    complexityRange.addEventListener('input', function() {
+      complexity = parseInt(this.value);
+      complexityValue.textContent = complexity;
+    });
 
-    // helper: render a chat bubble
-    function renderBubble(role, text){
+    // Toggle button handlers
+    document.querySelectorAll('.toggle-button').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const group = this.parentElement;
+        const mode = this.dataset.mode;
+        const theme = this.dataset.theme;
+        const responsive = this.dataset.responsive;
+
+        // Remove active class from siblings
+        group.querySelectorAll('.toggle-button').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+
+        // Update state
+        if (mode) currentMode = mode;
+        if (theme) currentTheme = theme;
+        if (responsive !== undefined) isResponsive = responsive === 'true';
+      });
+    });
+
+    // Add message to chat
+    function addMessage(role, content, isCode = false) {
+      messageCount++;
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `message ${role}`;
+      
+      const contentDiv = document.createElement('div');
+      contentDiv.className = 'message-content';
+      
+      if (isCode && role === 'bot') {
+        // Format code properly
+        const lines = content.split('\n').length;
+        const codeType = content.includes('<!DOCTYPE html') ? 'HTML' :
+                        content.includes('import React') ? 'React' :
+                        content.includes('function') ? 'JavaScript' : 'Code';
+        
+        contentDiv.innerHTML = `
+          <strong>📝 ${codeType} Code Generated</strong><br>
+          <small>📏 ${lines} lines | 🎯 Mode: ${currentMode}</small>
+          <pre><code>${escapeHtml(content)}</code></pre>
+        `;
+
+        // Update stats
+        updateCodeStats(codeType, lines);
+      } else {
+        contentDiv.innerHTML = formatMessage(content);
+      }
+      
+      messageDiv.appendChild(contentDiv);
+      chatMessages.appendChild(messageDiv);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    // Format message content
+    function formatMessage(content) {
+      return content
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+        .replace(/`(.*?)`/g, '<code style="background: var(--code); padding: 2px 4px; border-radius: 4px;">$1</code>')
+        .replace(/\n/g, '<br>');
+    }
+
+    // Escape HTML
+    function escapeHtml(text) {
       const div = document.createElement('div');
-      div.className = 'bubble ' + (role === 'user' ? 'user' : 'bot');
-      div.textContent = (role === 'user' ? 'คุณ: ' : 'โมเดล: ') + text;
-      chatEl.appendChild(div);
-      chatEl.scrollTop = chatEl.scrollHeight;
+      div.textContent = text;
+      return div.innerHTML;
     }
 
-    // helper: update numeric displays
-    function updateDisplay(){
-      tempVal.textContent = Number.parseFloat(tempInput.value).toFixed(2);
-      topPVal.textContent = Number.parseFloat(topPInput.value).toFixed(2);
-      presenceVal.textContent = Number.parseFloat(presenceInput.value).toFixed(1);
-      frequencyVal.textContent = Number.parseFloat(frequencyInput.value).toFixed(1);
+    // Update code statistics
+    function updateCodeStats(type, lines) {
+      const files = type === 'HTML' ? 1 : type === 'React' ? 2 : 1;
+      codeStats.innerHTML = `
+        🔧 สถิติโค้ด:<br>
+        📄 ไฟล์: ${files}<br>
+        📏 บรรทัด: ${lines}<br>
+        🏷️ ประเภท: ${type}<br>
+        ⚡ เวอร์ชัน: 1.${messageCount}
+      `;
     }
 
-    // simple param analyzer
-    function decideParams(latestUserMessage){
-      // base on mode and message length
-      const len = latestUserMessage ? latestUserMessage.length : 0;
-      let model = modelSelect.value;
-      let temperature = parseFloat(tempInput.value) || 0.7;
-      let max_tokens = parseInt(maxTokensInput.value) || 1000;
-      let top_p = parseFloat(topPInput.value) || 0.9;
-      let presence = parseFloat(presenceInput.value) || 0;
-      let frequency = parseFloat(frequencyInput.value) || 0;
-
-      // tighten or loosen based on mode
-      if (currentMode === 'latency'){
-        model = (model.startsWith('glm-4.5') ? 'glm-4.0' : model); // prefer smaller when latency
-        temperature = Math.max(0.1, Math.min(0.6, temperature * 0.8));
-        max_tokens = Math.max(128, Math.min(512, max_tokens - Math.floor(len / 10)));
-        top_p = Math.max(0.85, Math.min(0.98, top_p));
-        presence = 0;
-        frequency = 0;
-      } else if (currentMode === 'throughput'){
-        model = model; // keep
-        temperature = Math.max(0.4, Math.min(0.9, temperature));
-        max_tokens = Math.min(1024, max_tokens);
-        top_p = Math.max(0.9, Math.min(0.99, top_p));
-        presence = Math.min(0.5, presence);
-        frequency = Math.min(0.5, frequency);
-      } else { // cost
-        model = (model === 'glm-4.5') ? 'glm-4.0' : model;
-        temperature = Math.max(0.05, Math.min(0.5, temperature * 0.7));
-        max_tokens = Math.max(64, Math.min(512, Math.floor(max_tokens * 0.6)));
-        top_p = Math.max(0.75, Math.min(0.95, top_p));
-        presence = Math.max(0, Math.min(1.0, presence * 0.7));
-        frequency = Math.max(0, Math.min(1.0, frequency * 0.7));
-      }
-
-      // produce human readable rationale
-      const rationale = `Mode: ${currentMode}. Model: ${model}. Tokens: ${max_tokens}. Temp: ${temperature.toFixed(2)}. Top_p: ${top_p.toFixed(2)}. Presence: ${presence.toFixed(1)}. Frequency: ${frequency.toFixed(1)}.`;
-
-      return { model, temperature, max_tokens, top_p, presence_penalty: presence, frequency_penalty: frequency, rationale };
-    }
-
-    // generate code snippet to show how to call the API with chosen params
-    function generateSnippet(cfg){
-      // Use string template without literal array
-      const s =
-`// Generated fetch snippet
-const endpoint = "${endpointInput.value || 'https://your-glm-endpoint/v1/chat/completions'}";
-
-const payload = {
-  model: "${cfg.model}",
-  messages: /* history will be sent here by the app */,
-  temperature: ${cfg.temperature},
-  max_tokens: ${cfg.max_tokens},
-  top_p: ${cfg.top_p},
-  presence_penalty: ${cfg.presence_penalty},
-  frequency_penalty: ${cfg.frequency_penalty}
-};
-
-fetch(endpoint, {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' }${ (apiKeyInput.value ? ", Authorization: 'Bearer ' + '" + "' }" : '') }
-});`;
-      return s;
-    }
-
-    // initialize
-    function init(){
-      updateDisplay();
-      // greet
-      renderBubble('bot', 'สวัสดีครับ ผมคือผู้ช่วยปรับประสิทธิภาพโมเดลเบื้องหลัง การสนทนาพูดคุยแบบปกติได้ และจะจัดการ parameter ให้โดยอัตโนมัติเพื่อประสิทธิภาพสูงสุด');
-      tip.textContent = 'ระบบจะวิเคราะห์คำถามของคุณและปรับ parameter เพื่อให้เรียกโมเดลได้เร็วขึ้น/คุ้มค่าที่สุด';
-    }
-
-    // on send
-    async function handleSend(){
-      const text = (userInput.value || '').trim();
-      if (!text) return;
-      renderBubble('user', text);
-      userInput.value = '';
-      // push user message into internal history
-      messages.push({ role: 'user', content: text });
-
-      // decide params based on latest message
-      const cfg = decideParams(text);
-      analysis.textContent = cfg.rationale;
-
-      // build payload for model call (include all history)
-      // Use an internal messages list as we accumulate
-      const payloadMessages = [];
-      // system prompt
-      payloadMessages.push({ role: 'system', content: 'You are a helpful AI assistant. Respond naturally in a chat conversation. Optimize behind the scenes for performance as appropriate.' });
-      // append history from messages array
-      for (let i = 0; i < messages.length; i++) {
-        payloadMessages.push({ role: messages[i].role, content: messages[i].content });
-      }
-
-      const payload = {
-        model: cfg.model,
-        messages: payloadMessages,
-        temperature: cfg.temperature,
-        max_tokens: cfg.max_tokens,
-        top_p: cfg.top_p,
-        presence_penalty: cfg.presence_penalty,
-        frequency_penalty: cfg.frequency_penalty
+    // Generate code based on user input
+    async function generateCode(prompt) {
+      const templates = {
+        web: {
+          'เกมงูกินหาง': generateSnakeGame,
+          'โปงพาง': generatePongGame,
+          'แคลคูเลเตอร์': generateCalculator,
+          'โปรไฟล์': generateProfile,
+          'แปลงสกุลเงิน': generateCurrencyConverter,
+          'สภาพอากาศ': generateWeatherApp,
+          'todo': generateTodoApp,
+          'นาฬิกา': generateClock
+        },
+        react: {
+          'คอมโพเนนต์': generateReactComponent,
+          'ฟอร์ม': generateReactForm,
+          'แดชบอร์ด': generateReactDashboard
+        },
+        game: {
+          'เก็บเหรียญ': generateCoinGame,
+          'ตอบคำถาม': generateQuizGame,
+          'จับคู่': generateMemoryGame
+        }
       };
 
-      const endpoint = endpointInput.value;
-      const token = apiKeyInput.value;
+      // Find matching template
+      const modeTemplates = templates[currentMode] || templates.web;
+      let generator = null;
 
-      try {
-        const headers = { 'Content-Type': 'application/json' };
-        if (token && token.trim().length > 0) headers.Authorization = 'Bearer ' + token.trim();
+      for (const [key, func] of Object.entries(modeTemplates)) {
+        if (prompt.toLowerCase().includes(key.toLowerCase())) {
+          generator = func;
+          break;
+        }
+      }
 
-        const res = await fetch(endpoint, {
-          method: 'POST',
-          headers,
-          body: JSON.stringify(payload)
-        });
+      // Default generator if no match
+      if (!generator) {
+        generator = currentMode === 'react' ? generateReactComponent : generateSimpleWebApp;
+      }
 
-        let reply = '';
-        if (res.ok) {
-          const data = await res.json();
-          // attempt to extract content in robust way
-          let content = '';
-          if (data && data.choices && data.choices.length) {
-            const first = data.choices.shift();
-            if (first && first.message && first.message.content) content = first.message.content;
-            else if (first && first.text) content = first.text;
-          } else if (data && data.text) content = data.text;
-          reply = content || 'ขออภัย ไม่พบข้อความตอบกลับ';
-        } else {
-          const errText = await res.text();
-          reply = 'เกิดข้อผิดพลาดในการเรียกโมเดล: ' + res.status + ' ' + (errText || '');
+      return generator(prompt);
+    }
+
+    // Template generators
+    function generateSnakeGame(prompt) {
+      return `<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🐍 เกมงูกินหาง</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex; justify-content: center; align-items: center;
+            min-height: 100vh; padding: 20px;
+        }
+        .game-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px; padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            text-align: center; max-width: 600px; width: 100%;
+        }
+        .title { font-size: 2.5rem; margin-bottom: 20px; color: #333; }
+        .score { font-size: 1.5rem; margin-bottom: 20px; color: #666; }
+        #gameCanvas {
+            border: 3px solid #333; border-radius: 10px;
+            background: #f0f0f0; display: block; margin: 0 auto;
+        }
+        .controls {
+            margin-top: 20px; display: flex; gap: 10px;
+            justify-content: center; flex-wrap: wrap;
+        }
+        button {
+            padding: 12px 24px; font-size: 1rem; border: none;
+            border-radius: 25px; cursor: pointer; font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        .start-btn { background: #4CAF50; color: white; }
+        .start-btn:hover { background: #45a049; transform: translateY(-2px); }
+        .restart-btn { background: #f44336; color: white; }
+        .restart-btn:hover { background: #da190b; transform: translateY(-2px); }
+        @media (max-width: 480px) {
+            .game-container { padding: 20px; }
+            .title { font-size: 2rem; }
+            #gameCanvas { width: 100%; height: auto; }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1 class="title">🐍 เกมงูกินหาง</h1>
+        <div class="score">คะแนน: <span id="score">0</span></div>
+        <canvas id="gameCanvas" width="400" height="400"></canvas>
+        <div class="controls">
+            <button class="start-btn" onclick="startGame()">เริ่มเกม</button>
+            <button class="restart-btn" onclick="restartGame()">เริ่มใหม่</button>
+        </div>
+        <p style="margin-top: 15px; color: #666;">ใช้ลูกศรหรือ WASD ในการเคลื่อนที่</p>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreElement = document.getElementById('score');
+
+        const gridSize = 20;
+        const tileCount = canvas.width / gridSize;
+
+        let snake = [{ x: 10, y: 10 }];
+        let food = { x: 15, y: 15 };
+        let dx = 0; let dy = 0;
+        let score = 0; let gameRunning = false;
+
+        function drawGame() {
+            clearCanvas();
+            moveSnake();
+            drawSnake();
+            drawFood();
+            checkCollision();
         }
 
-        renderBubble('bot', reply);
-        messages.push({ role: 'assistant', content: reply });
+        function clearCanvas() {
+            ctx.fillStyle = '#f0f0f0';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
 
-        // update code snippet
-        const snippet = generateSnippet(cfg);
-        codeBlock.textContent = snippet;
-        analysis.textContent += '\nGenerated code snippet preview updated';
-      } catch (e) {
-        renderBubble('bot', 'เกิดข้อผิดพลาด: ' + (e && e.message ? e.message : 'unknown error'));
+        function drawSnake() {
+            ctx.fillStyle = '#4CAF50';
+            snake.forEach((part, index) => {
+                if (index === 0) ctx.fillStyle = '#2E7D32'; // head
+                else ctx.fillStyle = '#4CAF50'; // body
+                ctx.fillRect(part.x * gridSize, part.y * gridSize, gridSize - 2, gridSize - 2);
+            });
+        }
+
+        function drawFood() {
+            ctx.fillStyle = '#f44336';
+            ctx.beginPath();
+            ctx.arc(food.x * gridSize + gridSize/2, food.y * gridSize + gridSize/2, gridSize/2 - 1, 0, 2 * Math.PI);
+            ctx.fill();
+        }
+
+        function moveSnake() {
+            const head = { x: snake[0].x + dx, y: snake[0].y + dy };
+            snake.unshift(head);
+            
+            if (head.x === food.x && head.y === food.y) {
+                score += 10;
+                scoreElement.textContent = score;
+                generateFood();
+            } else {
+                snake.pop();
+            }
+        }
+
+        function generateFood() {
+            food = {
+                x: Math.floor(Math.random() * tileCount),
+                y: Math.floor(Math.random() * tileCount)
+            };
+        }
+
+        function checkCollision() {
+            const head = snake[0];
+            
+            // Wall collision
+            if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount) {
+                gameOver();
+            }
+            
+            // Self collision
+            for (let i = 1; i < snake.length; i++) {
+                if (head.x === snake[i].x && head.y === snake[i].y) {
+                    gameOver();
+                }
+            }
+        }
+
+        function gameOver() {
+            gameRunning = false;
+            alert('เกมจบ! คะแนนของคุณ: ' + score);
+        }
+
+        function startGame() {
+            if (!gameRunning) {
+                gameRunning = true;
+                gameLoop();
+            }
+        }
+
+        function restartGame() {
+            snake = [{ x: 10, y: 10 }];
+            dx = 0; dy = 0; score = 0;
+            scoreElement.textContent = score;
+            generateFood();
+            gameRunning = false;
+        }
+
+        function gameLoop() {
+            if (gameRunning) {
+                drawGame();
+                setTimeout(gameLoop, 150);
+            }
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (!gameRunning) return;
+            
+            const key = e.key.toLowerCase();
+            if ((key === 'arrowup' || key === 'w') && dy === 0) { dx = 0; dy = -1; }
+            else if ((key === 'arrowdown' || key === 's') && dy === 0) { dx = 0; dy = 1; }
+            else if ((key === 'arrowleft' || key === 'a') && dx === 0) { dx = -1; dy = 0; }
+            else if ((key === 'arrowright' || key === 'd') && dx === 0) { dx = 1; dy = 0; }
+        });
+
+        // Touch controls for mobile
+        let touchStartX = 0; let touchStartY = 0;
+        canvas.addEventListener('touchstart', (e) => {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+        });
+
+        canvas.addEventListener('touchend', (e) => {
+            if (!gameRunning) return;
+            const touchEndX = e.changedTouches[0].clientX;
+            const touchEndY = e.changedTouches[0].clientY;
+            const diffX = touchStartX - touchEndX;
+            const diffY = touchStartY - touchEndY;
+
+            if (Math.abs(diffX) > Math.abs(diffY)) {
+                if (diffX > 0 && dx === 0) { dx = -1; dy = 0; } // left
+                else if (diffX < 0 && dx === 0) { dx = 1; dy = 0; } // right
+            } else {
+                if (diffY > 0 && dy === 0) { dx = 0; dy = -1; } // up
+                else if (diffY < 0 && dy === 0) { dx = 0; dy = 1; } // down
+            }
+        });
+
+        // Initialize
+        generateFood();
+        drawGame();
+    </script>
+</body>
+</html>`;
+    }
+
+    function generateCalculator(prompt) {
+      return `<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧮 เครื่องคิดเลข</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #74b9ff, #0984e3);
+            display: flex; justify-content: center; align-items: center;
+            min-height: 100vh; padding: 20px;
+        }
+        .calculator {
+            background: linear-gradient(145deg, #2d3436, #636e72);
+            border-radius: 25px; padding: 30px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+            max-width: 350px; width: 100%;
+        }
+        .display {
+            background: #2d3436; color: #ddd;
+            font-size: 2.5rem; text-align: right;
+            padding: 20px; margin-bottom: 20px;
+            border-radius: 15px; min-height: 80px;
+            display: flex; align-items: center; justify-content: flex-end;
+            border: 2px solid #636e72;
+        }
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+        .btn {
+            height: 70px; border: none; border-radius: 15px;
+            font-size: 1.3rem; font-weight: bold; cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .btn:active { transform: translateY(2px); }
+        .number { background: linear-gradient(145deg, #74b9ff, #0984e3); color: white; }
+        .operator { background: linear-gradient(145deg, #fd79a8, #e84393); color: white; }
+        .clear { background: linear-gradient(145deg, #fd79a8, #e84393); color: white; }
+        .equals { background: linear-gradient(145deg, #00b894, #00a085); color: white; grid-column: span 2; }
+        .zero { grid-column: span 2; }
+        
+        @media (max-width: 480px) {
+            .calculator { padding: 20px; }
+            .display { font-size: 2rem; padding: 15px; }
+            .btn { height: 60px; font-size: 1.1rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <div class="display" id="display">0</div>
+        <div class="buttons">
+            <button class="btn clear" onclick="clearAll()">C</button>
+            <button class="btn clear" onclick="clearEntry()">CE</button>
+            <button class="btn operator" onclick="deleteLast()">⌫</button>
+            <button class="btn operator" onclick="appendOperator('/')">÷</button>
+            
+            <button class="btn number" onclick="appendNumber('7')">7</button>
+            <button class="btn number" onclick="appendNumber('8')">8</button>
+            <button class="btn number" onclick="appendNumber('9')">9</button>
+            <button class="btn operator" onclick="appendOperator('*')">×</button>
+            
+            <button class="btn number" onclick="appendNumber('4')">4</button>
+            <button class="btn number" onclick="appendNumber('5')">5</button>
+            <button class="btn number" onclick="appendNumber('6')">6</button>
+            <button class="btn operator" onclick="appendOperator('-')">-</button>
+            
+            <button class="btn number" onclick="appendNumber('1')">1</button>
+            <button class="btn number" onclick="appendNumber('2')">2</button>
+            <button class="btn number" onclick="appendNumber('3')">3</button>
+            <button class="btn operator" onclick="appendOperator('+')">+</button>
+            
+            <button class="btn number zero" onclick="appendNumber('0')">0</button>
+            <button class="btn number" onclick="appendNumber('.')">.</button>
+            <button class="btn equals" onclick="calculate()">=</button>
+        </div>
+    </div>
+
+    <script>
+        let display = document.getElementById('display');
+        let currentInput = '0';
+        let operator = null;
+        let previousInput = null;
+        let waitingForOperand = false;
+
+        function updateDisplay() {
+            display.textContent = currentInput;
+        }
+
+        function appendNumber(num) {
+            if (waitingForOperand) {
+                currentInput = num;
+                waitingForOperand = false;
+            } else {
+                currentInput = currentInput === '0' ? num : currentInput + num;
+            }
+            updateDisplay();
+        }
+
+        function appendOperator(nextOperator) {
+            const inputValue = parseFloat(currentInput);
+
+            if (previousInput === null) {
+                previousInput = inputValue;
+            } else if (operator) {
+                const currentValue = previousInput || 0;
+                const newValue = performCalculation(currentValue, inputValue, operator);
+
+                currentInput = String(newValue);
+                previousInput = newValue;
+                updateDisplay();
+            }
+
+            waitingForOperand = true;
+            operator = nextOperator;
+        }
+
+        function calculate() {
+            const inputValue = parseFloat(currentInput);
+
+            if (previousInput !== null && operator) {
+                const newValue = performCalculation(previousInput, inputValue, operator);
+                currentInput = String(newValue);
+                previousInput = null;
+                operator = null;
+                waitingForOperand = true;
+                updateDisplay();
+            }
+        }
+
+        function performCalculation(firstOperand, secondOperand, operator) {
+            switch (operator) {
+                case '+': return firstOperand + secondOperand;
+                case '-': return firstOperand - secondOperand;
+                case '*': return firstOperand * secondOperand;
+                case '/': return secondOperand !== 0 ? firstOperand / secondOperand : 0;
+                default: return secondOperand;
+            }
+        }
+
+        function clearAll() {
+            currentInput = '0';
+            previousInput = null;
+            operator = null;
+            waitingForOperand = false;
+            updateDisplay();
+        }
+
+        function clearEntry() {
+            currentInput = '0';
+            updateDisplay();
+        }
+
+        function deleteLast() {
+            if (currentInput.length > 1) {
+                currentInput = currentInput.slice(0, -1);
+            } else {
+                currentInput = '0';
+            }
+            updateDisplay();
+        }
+
+        // Keyboard support
+        document.addEventListener('keydown', (e) => {
+            if (e.key >= '0' && e.key <= '9' || e.key === '.') {
+                appendNumber(e.key);
+            } else if (e.key === '+' || e.key === '-') {
+                appendOperator(e.key);
+            } else if (e.key === '*') {
+                appendOperator('*');
+            } else if (e.key === '/') {
+                e.preventDefault();
+                appendOperator('/');
+            } else if (e.key === 'Enter' || e.key === '=') {
+                calculate();
+            } else if (e.key === 'Escape') {
+                clearAll();
+            } else if (e.key === 'Backspace') {
+                deleteLast();
+            }
+        });
+    </script>
+</body>
+</html>`;
+    }
+
+    function generateReactComponent(prompt) {
+      return `import React, { useState, useEffect } from 'react';
+
+const ModernApp = () => {
+  const [count, setCount] = useState(0);
+  const [theme, setTheme] = useState('dark');
+  const [todos, setTodos] = useState([]);
+  const [newTodo, setNewTodo] = useState('');
+
+  useEffect(() => {
+    document.body.className = theme;
+  }, [theme]);
+
+  const addTodo = () => {
+    if (newTodo.trim()) {
+      setTodos([...todos, { id: Date.now(), text: newTodo, completed: false }]);
+      setNewTodo('');
+    }
+  };
+
+  const toggleTodo = (id) => {
+    setTodos(todos.map(todo => 
+      todo.id === id ? { ...todo, completed: !todo.completed } : todo
+    ));
+  };
+
+  const deleteTodo = (id) => {
+    setTodos(todos.filter(todo => todo.id !== id));
+  };
+
+  return (
+    <div className={\`app-container \${theme}\`}>
+      <div className="header">
+        <h1>⚛️ Modern React App</h1>
+        <button 
+          className="theme-toggle"
+          onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+        >
+          {theme === 'dark' ? '☀️' : '🌙'} 
+        </button>
+      </div>
+
+      <div className="content">
+        <div className="counter-section">
+          <h2>📊 Counter</h2>
+          <div className="counter">
+            <button onClick={() => setCount(count - 1)}>➖</button>
+            <span className="count">{count}</span>
+            <button onClick={() => setCount(count + 1)}>➕</button>
+          </div>
+        </div>
+
+        <div className="todo-section">
+          <h2>📝 Todo List</h2>
+          <div className="todo-input">
+            <input
+              type="text"
+              value={newTodo}
+              onChange={(e) => setNewTodo(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && addTodo()}
+              placeholder="เพิ่มรายการใหม่..."
+            />
+            <button onClick={addTodo}>เพิ่ม</button>
+          </div>
+          
+          <div className="todo-list">
+            {todos.map(todo => (
+              <div key={todo.id} className={\`todo-item \${todo.completed ? 'completed' : ''}\`}>
+                <input
+                  type="checkbox"
+                  checked={todo.completed}
+                  onChange={() => toggleTodo(todo.id)}
+                />
+                <span>{todo.text}</span>
+                <button onClick={() => deleteTodo(todo.id)}>🗑️</button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <style jsx>{\`
+        .app-container {
+          min-height: 100vh;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          transition: all 0.3s ease;
+        }
+        
+        .app-container.dark {
+          background: linear-gradient(135deg, #1e293b, #334155);
+          color: #f1f5f9;
+        }
+        
+        .app-container.light {
+          background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+          color: #1e293b;
+        }
+        
+        .header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 2rem;
+          background: rgba(255, 255, 255, 0.1);
+          backdrop-filter: blur(10px);
+        }
+        
+        .theme-toggle {
+          background: none;
+          border: 2px solid currentColor;
+          color: inherit;
+          padding: 0.5rem 1rem;
+          border-radius: 25px;
+          cursor: pointer;
+          font-size: 1rem;
+          transition: all 0.3s ease;
+        }
+        
+        .theme-toggle:hover {
+          background: rgba(255, 255, 255, 0.1);
+          transform: scale(1.05);
+        }
+        
+        .content {
+          padding: 2rem;
+          max-width: 800px;
+          margin: 0 auto;
+          display: grid;
+          gap: 2rem;
+        }
+        
+        .counter-section, .todo-section {
+          background: rgba(255, 255, 255, 0.1);
+          backdrop-filter: blur(10px);
+          padding: 2rem;
+          border-radius: 20px;
+          border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .counter {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 1rem;
+          margin-top: 1rem;
+        }
+        
+        .counter button {
+          background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+          color: white;
+          border: none;
+          width: 50px;
+          height: 50px;
+          border-radius: 50%;
+          cursor: pointer;
+          font-size: 1.2rem;
+          transition: all 0.3s ease;
+        }
+        
+        .counter button:hover {
+          transform: scale(1.1);
+          box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
+        }
+        
+        .count {
+          font-size: 2rem;
+          font-weight: bold;
+          min-width: 60px;
+          text-align: center;
+        }
+        
+        .todo-input {
+          display: flex;
+          gap: 1rem;
+          margin-bottom: 1rem;
+        }
+        
+        .todo-input input {
+          flex: 1;
+          padding: 0.75rem;
+          border: 2px solid rgba(255, 255, 255, 0.2);
+          border-radius: 10px;
+          background: rgba(255, 255, 255, 0.1);
+          color: inherit;
+          font-size: 1rem;
+        }
+        
+        .todo-input input:focus {
+          outline: none;
+          border-color: #3b82f6;
+          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        .todo-input button {
+          background: linear-gradient(135deg, #10b981, #059669);
+          color: white;
+          border: none;
+          padding: 0.75rem 1.5rem;
+          border-radius: 10px;
+          cursor: pointer;
+          font-weight: 600;
+          transition: all 0.3s ease;
+        }
+        
+        .todo-input button:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3);
+        }
+        
+        .todo-list {
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+        }
+        
+        .todo-item {
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+          padding: 1rem;
+          background: rgba(255, 255, 255, 0.05);
+          border-radius: 10px;
+          transition: all 0.3s ease;
+        }
+        
+        .todo-item:hover {
+          background: rgba(255, 255, 255, 0.1);
+          transform: translateX(5px);
+        }
+        
+        .todo-item.completed {
+          opacity: 0.6;
+          text-decoration: line-through;
+        }
+        
+        .todo-item input[type="checkbox"] {
+          width: 20px;
+          height: 20px;
+          cursor: pointer;
+        }
+        
+        .todo-item span {
+          flex: 1;
+        }
+        
+        .todo-item button {
+          background: none;
+          border: none;
+          cursor: pointer;
+          font-size: 1.2rem;
+          opacity: 0.7;
+          transition: all 0.3s ease;
+        }
+        
+        .todo-item button:hover {
+          opacity: 1;
+          transform: scale(1.2);
+        }
+        
+        @media (max-width: 768px) {
+          .header {
+            padding: 1rem;
+          }
+          
+          .content {
+            padding: 1rem;
+          }
+          
+          .counter-section, .todo-section {
+            padding: 1.5rem;
+          }
+          
+          .todo-input {
+            flex-direction: column;
+          }
+        }
+      \`}</style>
+    </div>
+  );
+};
+
+export default ModernApp;`;
+    }
+
+    function generateSimpleWebApp(prompt) {
+      const templates = {
+        'portfolio': generateProfile,
+        'profile': generateProfile,
+        'landing': generateLandingPage,
+        'dashboard': generateDashboard,
+        'form': generateForm
+      };
+
+      for (const [key, func] of Object.entries(templates)) {
+        if (prompt.toLowerCase().includes(key)) {
+          return func(prompt);
+        }
+      }
+
+      return generateLandingPage(prompt);
+    }
+
+    function generateProfile(prompt) {
+      return `<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>👨‍💻 Portfolio Profile</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6; background: #0f172a; color: #f1f5f9;
+            overflow-x: hidden;
+        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+        
+        .header {
+            background: linear-gradient(135deg, #1e293b, #334155);
+            padding: 100px 0; text-align: center; position: relative;
+            overflow: hidden;
+        }
+        .header::before {
+            content: ''; position: absolute; top: 0; left: 0;
+            width: 100%; height: 100%; 
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="2" fill="%234f46e5" opacity="0.3"/></svg>') repeat;
+            animation: float 20s infinite linear;
+        }
+        @keyframes float { 0% { transform: translateY(0px); } 100% { transform: translateY(-100px); } }
+        
+        .profile-img {
+            width: 150px; height: 150px; border-radius: 50%;
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+            margin: 0 auto 30px; display: flex; align-items: center;
+            justify-content: center; font-size: 4rem; position: relative; z-index: 1;
+            box-shadow: 0 20px 40px rgba(79, 70, 229, 0.3);
+        }
+        
+        .header h1 { font-size: 3rem; margin-bottom: 10px; position: relative; z-index: 1; }
+        .header p { font-size: 1.2rem; color: #94a3b8; position: relative; z-index: 1; }
+        
+        .nav {
+            background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(10px);
+            padding: 20px 0; position: sticky; top: 0; z-index: 100;
+            border-bottom: 1px solid #334155;
+        }
+        .nav ul { list-style: none; display: flex; justify-content: center; gap: 30px; }
+        .nav a { 
+            color: #f1f5f9; text-decoration: none; font-weight: 500;
+            padding: 10px 20px; border-radius: 25px; transition: all 0.3s ease;
+        }
+        .nav a:hover { background: #4f46e5; transform: translateY(-2px); }
+        
+        .section {
+            padding: 80px 0; background: #0f172a;
+            border-bottom: 1px solid #1e293b;
+        }
+        .section:nth-child(even) { background: #1e293b; }
+        
+        .section h2 {
+            font-size: 2.5rem; text-align: center; margin-bottom: 50px;
+            background: linear-gradient(135deg, #4f46e5, #06b6d4);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        
+        .skills-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px; margin-top: 50px;
+        }
+        .skill-card {
+            background: linear-gradient(135deg, #1e293b, #334155);
+            padding: 30px; border-radius: 20px; text-align: center;
+            transition: all 0.3s ease; border: 1px solid #334155;
+        }
+        .skill-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(79, 70, 229, 0.2);
+        }
+        .skill-card .icon { font-size: 3rem; margin-bottom: 20px; }
+        
+        .projects-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px; margin-top: 50px;
+        }
+        .project-card {
+            background: linear-gradient(135deg, #1e293b, #334155);
+            border-radius: 20px; overflow: hidden; transition: all 0.3s ease;
+            border: 1px solid #334155;
+        }
+        .project-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(79, 70, 229, 0.2);
+        }
+        .project-img {
+            height: 200px; background: linear-gradient(135deg, #4f46e5, #06b6d4);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 3rem; color: white;
+        }
+        .project-content { padding: 30px; }
+        .project-content h3 { margin-bottom: 15px; color: #4f46e5; }
+        
+        .contact {
+            background: linear-gradient(135deg, #1e293b, #334155);
+            padding: 80px 0; text-align: center;
+        }
+        .contact-links {
+            display: flex; justify-content: center; gap: 30px;
+            margin-top: 40px; flex-wrap: wrap;
+        }
+        .contact-link {
+            display: inline-flex; align-items: center; gap: 10px;
+            padding: 15px 30px; background: #4f46e5; color: white;
+            text-decoration: none; border-radius: 25px; font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        .contact-link:hover {
+            background: #3730a3; transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(79, 70, 229, 0.4);
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 { font-size: 2rem; }
+            .nav ul { flex-direction: column; text-align: center; gap: 15px; }
+            .section { padding: 50px 0; }
+            .section h2 { font-size: 2rem; }
+            .skills-grid, .projects-grid { grid-template-columns: 1fr; }
+            .contact-links { flex-direction: column; align-items: center; }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="profile-img">👨‍💻</div>
+            <h1>สวัสดี ผม คือ นักพัฒนา</h1>
+            <p>Full Stack Developer & UI/UX Designer</p>
+        </div>
+    </header>
+
+    <nav class="nav">
+        <div class="container">
+            <ul>
+                <li><a href="#about">เกี่ยวกับ</a></li>
+                <li><a href="#skills">ทักษะ</a></li>
+                <li><a href="#projects">ผลงาน</a></li>
+                <li><a href="#contact">ติดต่อ</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <section id="about" class="section">
+        <div class="container">
+            <h2>เกี่ยวกับผม</h2>
+            <p style="text-align: center; font-size: 1.2rem; max-width: 800px; margin: 0 auto; color: #94a3b8;">
+                ผมเป็นนักพัฒนาเว็บไซต์ที่มีประสบการณ์ในการสร้างแอปพลิเคชันที่ทันสมัยและใช้งานง่าย 
+                มีความเชี่ยวชาญในเทคโนโลยีต่างๆ และชอบเรียนรู้สิ่งใหม่ๆ อยู่เสมอ
+            </p>
+        </div>
+    </section>
+
+    <section id="skills" class="section">
+        <div class="container">
+            <h2>ทักษะของผม</h2>
+            <div class="skills-grid">
+                <div class="skill-card">
+                    <div class="icon">🌐</div>
+                    <h3>Frontend Development</h3>
+                    <p>React, Vue.js, HTML5, CSS3, JavaScript</p>
+                </div>
+                <div class="skill-card">
+                    <div class="icon">⚙️</div>
+                    <h3>Backend Development</h3>
+                    <p>Node.js, Python, PHP, MySQL, MongoDB</p>
+                </div>
+                <div class="skill-card">
+                    <div class="icon">🎨</div>
+                    <h3>UI/UX Design</h3>
+                    <p>Figma, Adobe XD, Photoshop, Illustrator</p>
+                </div>
+                <div class="skill-card">
+                    <div class="icon">📱</div>
+                    <h3>Mobile Development</h3>
+                    <p>React Native, Flutter, iOS, Android</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="projects" class="section">
+        <div class="container">
+            <h2>ผลงานของผม</h2>
+            <div class="projects-grid">
+                <div class="project-card">
+                    <div class="project-img">🛒</div>
+                    <div class="project-content">
+                        <h3>E-commerce Platform</h3>
+                        <p>แพลตฟอร์มอีคอมเมิร์ซที่สมบูรณ์แบบ พร้อมระบบชำระเงินและจัดการสินค้า</p>
+                    </div>
+                </div>
+                <div class="project-card">
+                    <div class="project-img">📊</div>
+                    <div class="project-content">
+                        <h3>Analytics Dashboard</h3>
+                        <p>แดชบอร์ดสำหรับวิเคราะห์ข้อมูล พร้อมกราฟและรายงานแบบเรียลไทม์</p>
+                    </div>
+                </div>
+                <div class="project-card">
+                    <div class="project-img">🎵</div>
+                    <div class="project-content">
+                        <h3>Music Streaming App</h3>
+                        <p>แอปพลิเคชันสตรีมมิ่งเพลงพร้อมฟีเจอร์เพลย์ลิสต์และแนะนำเพลง</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="contact" class="contact">
+        <div class="container">
+            <h2>ติดต่อผม</h2>
+            <p style="font-size: 1.2rem; color: #94a3b8; margin-bottom: 30px;">
+                สนใจทำงานร่วมกัน? ติดต่อผมได้เลย!
+            </p>
+            <div class="contact-links">
+                <a href="mailto:contact@example.com" class="contact-link">
+                    📧 Email
+                </a>
+                <a href="tel:+66123456789" class="contact-link">
+                    📞 โทรศัพท์
+                </a>
+                <a href="#" class="contact-link">
+                    💼 LinkedIn
+                </a>
+                <a href="#" class="contact-link">
+                    🐙 GitHub
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('.nav a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Add scroll effect to navigation
+        window.addEventListener('scroll', () => {
+            const nav = document.querySelector('.nav');
+            if (window.scrollY > 100) {
+                nav.style.background = 'rgba(15, 23, 42, 0.95)';
+            } else {
+                nav.style.background = 'rgba(15, 23, 42, 0.9)';
+            }
+        });
+
+        // Animate cards on scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        // Observe all cards
+        document.querySelectorAll('.skill-card, .project-card').forEach(card => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(30px)';
+            card.style.transition = 'all 0.6s ease';
+            observer.observe(card);
+        });
+    </script>
+</body>
+</html>`;
+    }
+
+    function generateLandingPage(prompt) {
+      return `<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 Modern Landing Page</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6; overflow-x: hidden;
+        }
+        
+        .hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh; display: flex; align-items: center;
+            position: relative; color: white; text-align: center;
+        }
+        .hero::before {
+            content: ''; position: absolute; top: 0; left: 0;
+            width: 100%; height: 100%; 
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="1" fill="white" opacity="0.1"/></svg>') repeat;
+            animation: twinkle 3s infinite;
+        }
+        @keyframes twinkle { 0%, 100% { opacity: 0.1; } 50% { opacity: 0.3; } }
+        
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; position: relative; z-index: 1; }
+        
+        .hero h1 {
+            font-size: 4rem; font-weight: 800; margin-bottom: 20px;
+            background: linear-gradient(45deg, #fff, #f0f0f0);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            animation: slideInUp 1s ease-out;
+        }
+        .hero p {
+            font-size: 1.5rem; margin-bottom: 40px; opacity: 0.9;
+            animation: slideInUp 1s ease-out 0.3s both;
+        }
+        
+        @keyframes slideInUp {
+            from { opacity: 0; transform: translateY(50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .cta-buttons {
+            display: flex; gap: 20px; justify-content: center;
+            flex-wrap: wrap; animation: slideInUp 1s ease-out 0.6s both;
+        }
+        .btn {
+            padding: 15px 30px; border-radius: 50px; text-decoration: none;
+            font-weight: 600; font-size: 1.1rem; transition: all 0.3s ease;
+            display: inline-flex; align-items: center; gap: 10px;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white; border: none;
+        }
+        .btn-secondary {
+            background: transparent; color: white;
+            border: 2px solid rgba(255,255,255,0.8);
+        }
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+        
+        .features {
+            padding: 100px 0; background: #f8f9fa;
+        }
+        .features h2 {
+            font-size: 3rem; text-align: center; margin-bottom: 60px;
+            color: #333; font-weight: 700;
+        }
+        .features-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px; margin-top: 60px;
+        }
+        .feature-card {
+            background: white; padding: 40px; border-radius: 20px;
+            text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: all 0.3s ease; border: 1px solid #e9ecef;
+        }
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+        .feature-icon {
+            font-size: 3.5rem; margin-bottom: 20px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .feature-card h3 {
+            font-size: 1.5rem; margin-bottom: 15px; color: #333;
+        }
+        .feature-card p {
+            color: #666; line-height: 1.6;
+        }
+        
+        .stats {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            padding: 80px 0; color: white; text-align: center;
+        }
+        .stats-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 40px; margin-top: 40px;
+        }
+        .stat-item h3 {
+            font-size: 3rem; font-weight: 800; margin-bottom: 10px;
+            color: #3498db;
+        }
+        .stat-item p {
+            font-size: 1.2rem; opacity: 0.9;
+        }
+        
+        .cta-section {
+            background: linear-gradient(135deg, #FF6B6B, #4ECDC4);
+            padding: 100px 0; text-align: center; color: white;
+        }
+        .cta-section h2 {
+            font-size: 3rem; margin-bottom: 20px; font-weight: 700;
+        }
+        .cta-section p {
+            font-size: 1.3rem; margin-bottom: 40px; opacity: 0.9;
+        }
+        
+        .footer {
+            background: #1a1a1a; color: white; padding: 50px 0;
+            text-align: center;
+        }
+        .footer-content {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 40px; margin-bottom: 40px; text-align: left;
+        }
+        .footer-section h3 {
+            margin-bottom: 20px; color: #3498db;
+        }
+        .footer-section a {
+            color: #bbb; text-decoration: none; display: block;
+            margin-bottom: 10px; transition: color 0.3s ease;
+        }
+        .footer-section a:hover { color: #3498db; }
+        
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2.5rem; }
+            .hero p { font-size: 1.2rem; }
+            .cta-buttons { flex-direction: column; align-items: center; }
+            .features { padding: 60px 0; }
+            .features h2 { font-size: 2rem; }
+            .features-grid { grid-template-columns: 1fr; gap: 30px; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .cta-section h2 { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body>
+    <section class="hero">
+        <div class="container">
+            <h1>🚀 ยินดีต้อนรับสู่อนาคต</h1>
+            <p>สร้างสรรค์สิ่งที่ยอดเยี่ยมด้วยเทคโนโลยีที่ทันสมัย</p>
+            <div class="cta-buttons">
+                <a href="#features" class="btn btn-primary">🌟 เริ่มต้นเลย</a>
+                <a href="#about" class="btn btn-secondary">📖 เรียนรู้เพิ่มเติม</a>
+            </div>
+        </div>
+    </section>
+
+    <section id="features" class="features">
+        <div class="container">
+            <h2>✨ ฟีเจอร์เด่น</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3>รวดเร็วเหมือนสายฟ้า</h3>
+                    <p>ประสิทธิภาพที่เหนือกว่า ด้วยเทคโนโลยีที่ทันสมัยที่สุด ให้ประสบการณ์ที่ลื่นไหลไร้สะดุด</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔒</div>
+                    <h3>ปลอดภัยสูงสุด</h3>
+                    <p>ระบบรักษาความปลอดภัยระดับธนาคาร ข้อมูลของคุณได้รับการปกป้องอย่างเข้มงวด</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📱</div>
+                    <h3>ใช้งานง่าย</h3>
+                    <p>ออกแบบให้ใช้งานง่าย เข้าใจได้ทันที รองรับทุกอุปกรณ์ ทุกขนาดหน้าจอ</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🌍</div>
+                    <h3>เข้าถึงได้ทุกที่</h3>
+                    <p>ใช้งานได้ทุกที่ ทุกเวลา บนเว็บ มือถือ แท็บเล็ต พร้อมซิงค์ข้อมูลแบบเรียลไทม์</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🎨</div>
+                    <h3>ออกแบบสวยงาม</h3>
+                    <p>UI/UX ที่ออกแบบโดยผู้เชี่ยวชาญ ให้ประสบการณ์การใช้งานที่ประทับใจ</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🚀</div>
+                    <h3>อัปเดตต่อเนื่อง</h3>
+                    <p>ฟีเจอร์ใหม่ๆ เพิ่มขึ้นเรื่อยๆ ตามความต้องการของผู้ใช้ พร้อมการปรับปรุงอย่างสม่ำเสมอ</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="stats">
+        <div class="container">
+            <h2>📊 ตัวเลขที่พูดแทนเรา</h2>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <h3 class="counter" data-target="50000">0</h3>
+                    <p>ผู้ใช้งานที่พอใจ</p>
+                </div>
+                <div class="stat-item">
+                    <h3 class="counter" data-target="1000">0</h3>
+                    <p>โปรเจกต์ที่สำเร็จ</p>
+                </div>
+                <div class="stat-item">
+                    <h3 class="counter" data-target="99">0</h3>
+                    <p>% ความพึงพอใจ</p>
+                </div>
+                <div class="stat-item">
+                    <h3 class="counter" data-target="24">0</h3>
+                    <p>ชั่วโมง ให้บริการ</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta-section">
+        <div class="container">
+            <h2>🎯 พร้อมเริ่มต้นแล้วหรือยัง?</h2>
+            <p>เข้าร่วมกับผู้ใช้งานหลายพันคนที่เชื่อมั่นในบริการของเรา</p>
+            <a href="#signup" class="btn btn-primary" style="font-size: 1.2rem; padding: 20px 40px;">
+                🚀 เริ่มใช้งานฟรี
+            </a>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>📞 ติดต่อเรา</h3>
+                    <a href="mailto:info@example.com">📧 info@example.com</a>
+                    <a href="tel:+66123456789">📱 092-123-4567</a>
+                    <a href="#">📍 กรุงเทพฯ ประเทศไทย</a>
+                </div>
+                <div class="footer-section">
+                    <h3>🔗 ลิงก์ด่วน</h3>
+                    <a href="#">เกี่ยวกับเรา</a>
+                    <a href="#">บริการ</a>
+                    <a href="#">ราคา</a>
+                    <a href="#">ติดต่อ</a>
+                </div>
+                <div class="footer-section">
+                    <h3>💼 บริการ</h3>
+                    <a href="#">พัฒนาเว็บไซต์</a>
+                    <a href="#">แอปมือถือ</a>
+                    <a href="#">ออกแบบ UI/UX</a>
+                    <a href="#">ปรึกษาเทคโนโลยี</a>
+                </div>
+                <div class="footer-section">
+                    <h3>🌟 ติดตาม</h3>
+                    <a href="#">Facebook</a>
+                    <a href="#">Twitter</a>
+                    <a href="#">Instagram</a>
+                    <a href="#">LinkedIn</a>
+                </div>
+            </div>
+            <p style="text-align: center; padding-top: 20px; border-top: 1px solid #333; color: #888;">
+                © 2024 บริษัทของเรา. สงวนลิขสิทธิ์.
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // Smooth scrolling
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+
+        // Counter animation
+        function animateCounters() {
+            const counters = document.querySelectorAll('.counter');
+            counters.forEach(counter => {
+                const target = parseInt(counter.getAttribute('data-target'));
+                const current = parseInt(counter.textContent);
+                const increment = target / 100;
+                
+                if (current < target) {
+                    counter.textContent = Math.ceil(current + increment);
+                    setTimeout(() => animateCounters(), 20);
+                } else {
+                    counter.textContent = target;
+                }
+            });
+        }
+
+        // Intersection Observer for animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    if (entry.target.classList.contains('stats')) {
+                        animateCounters();
+                    }
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        // Observe sections
+        document.querySelectorAll('.features, .stats, .cta-section').forEach(section => {
+            section.style.opacity = '0';
+            section.style.transform = 'translateY(30px)';
+            section.style.transition = 'all 0.8s ease';
+            observer.observe(section);
+        });
+
+        // Observe feature cards
+        document.querySelectorAll('.feature-card').forEach(card => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(30px)';
+            card.style.transition = 'all 0.6s ease';
+            observer.observe(card);
+        });
+    </script>
+</body>
+</html>`;
+    }
+
+    // Handle send message
+    async function handleSend() {
+      const text = userInput.value.trim();
+      if (!text || isLoading) return;
+
+      setLoading(true);
+      addMessage('user', text);
+      userInput.value = '';
+      userInput.style.height = 'auto';
+
+      try {
+        // Check if user is asking for code
+        const codeKeywords = [
+          'สร้าง', 'ทำ', 'เขียน', 'พัฒนา', 'ออกแบบ', 'build', 'create', 'make', 'develop',
+          'เกม', 'เว็บ', 'แอพ', 'โปรแกรม', 'component', 'website', 'app', 'game'
+        ];
+        
+        const isCodeRequest = codeKeywords.some(keyword => 
+          text.toLowerCase().includes(keyword.toLowerCase())
+        );
+
+        if (isCodeRequest) {
+          // Add thinking message
+          addMessage('bot', '🤔 กำลังคิดและเขียนโค้ดให้คุณ...');
+          
+          // Simulate AI processing time
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          
+          // Generate code
+          const code = await generateCode(text);
+          addMessage('bot', code, true);
+          
+          // Add explanation
+          await new Promise(resolve => setTimeout(resolve, 500));
+          addMessage('bot', `✅ **โค้ดเสร็จแล้ว!** 
+
+ผมได้สร้างโค้ดตามที่คุณต้องการแล้ว โค้ดนี้มีฟีเจอร์ต่างๆ ดังนี้:
+
+• 📱 **Responsive Design** - ใช้งานได้บนมือถือ
+• 🎨 **Modern UI** - ออกแบบทันสมัย
+• ⚡ **Interactive** - มีฟีเจอร์เชิงโต้ตอบ
+• 🔧 **Clean Code** - โค้ดเขียนอย่างเป็นระเบียบ
+
+คุณสามารถ **copy โค้ด** ไปใช้ได้เลย หรือขอให้ผมปรับแต่งเพิ่มเติม!`);
+        } else {
+          // Regular chat response
+          const responses = [
+            `สวัสดีครับ! ผมสามารถช่วยคุณสร้างโค้ดได้หลากหลาย เช่น:
+
+🌐 **เว็บไซต์**: Landing page, Portfolio, Dashboard
+⚛️ **React**: Components, Forms, Apps  
+🎮 **เกม**: Snake, Pong, Puzzle games
+🎨 **UI/UX**: Modern designs, Animations
+
+ลองบอกผมว่าคุณต้องการอะไร เช่น "สร้างเกมงูกินหาง" หรือ "ทำเว็บไซต์โปรไฟล์"`,
+
+            `ผมพร้อมช่วยคุณเขียนโค้ดแล้ว! 💻
+
+**ตัวอย่างคำสั่งที่ใช้ได้:**
+• "สร้างแคลคูเลเตอร์"
+• "ทำเกมโปงพาง" 
+• "เขียน React component"
+• "ออกแบบ landing page"
+• "พัฒนาแอพสภาพอากาศ"
+
+แค่บอกผมว่าต้องการอะไร ผมจะเขียนโค้ดให้ทันที! ⚡`,
+
+            `ยินดีที่ได้ช่วยเหลือครับ! 🤝
+
+ผมเป็นผู้ช่วย AI ที่เชี่ยวชาญด้านการเขียนโค้ด:
+• ✅ HTML/CSS/JavaScript
+• ✅ React Components  
+• ✅ Responsive Design
+• ✅ Interactive Games
+• ✅ Modern UI/UX
+
+พิมพ์คำสั่งที่ต้องการ แล้วผมจะสร้างโค้ดที่สมบูรณ์ให้เลย!`
+          ];
+          
+          addMessage('bot', responses[Math.floor(Math.random() * responses.length)]);
+        }
+      } catch (error) {
+        addMessage('bot', '❌ เกิดข้อผิดพลาดในการประมวลผล กรุณาลองใหม่อีกครั้ง');
+      } finally {
+        setLoading(false);
       }
     }
 
-    // event bindings
+    // Set loading state
+    function setLoading(loading) {
+      isLoading = loading;
+      sendBtn.disabled = loading;
+      if (loading) {
+        sendText.style.display = 'none';
+        loadingSpinner.style.display = 'block';
+      } else {
+        sendText.style.display = 'block';
+        loadingSpinner.style.display = 'none';
+      }
+    }
+
+    // Event listeners
     sendBtn.addEventListener('click', handleSend);
-    userInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') handleSend(); });
-
-    // mode buttons
-    latencyBtn.addEventListener('click', () => { currentMode = 'latency'; renderBubble('bot', 'Mode: Latency'); });
-    throughputBtn.addEventListener('click', () => { currentMode = 'throughput'; renderBubble('bot', 'Mode: Throughput'); });
-    costBtn.addEventListener('click', () => { currentMode = 'cost'; renderBubble('bot', 'Mode: Cost'); });
-
-    // code gen
-    genCode.addEventListener('click', () => {
-      const cfg = decideParams(''); // minimal
-      codeBlock.textContent = generateSnippet(cfg);
-      analysis.textContent = 'Code snippet generated for current parameters';
+    userInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        handleSend();
+      }
     });
 
-    // update displays live
-    [tempInput, topPInput, presenceInput, frequencyInput].forEach(el => {
-      el.addEventListener('input', updateDisplay);
+    // Initialize with welcome message
+    document.addEventListener('DOMContentLoaded', () => {
+      updateCodeStats('Web', 0);
     });
+  </script>
+</body>
+</html>`;
+    }
 
-    // start
-    var messages = new Array(); // history will be filled as user and bot exchange
-    init();
+    // Send message
+    async function sendMessage() {
+      const text = userInput.value.trim();
+      if (!text || isLoading) return;
+
+      setLoading(true);
+      addMessage('user', text);
+      userInput.value = '';
+      userInput.style.height = 'auto';
+
+      try {
+        // Check if user is asking for code
+        const codeKeywords = [
+          'สร้าง', 'ทำ', 'เขียน', 'พัฒนา', 'ออกแบบ', 'build', 'create', 'make', 'develop',
+          'เกม', 'เว็บ', 'แอพ', 'โปรแกรม', 'component', 'website', 'app', 'game'
+        ];
+        
+        const isCodeRequest = codeKeywords.some(keyword => 
+          text.toLowerCase().includes(keyword.toLowerCase())
+        );
+
+        if (isCodeRequest) {
+          addMessage('bot', '🤔 กำลังสร้างโค้ดให้คุณ...');
+          await new Promise(resolve => setTimeout(resolve, 1500));
+          
+          const code = await generateCode(text);
+          addMessage('bot', code, true);
+          
+          await new Promise(resolve => setTimeout(resolve, 500));
+          addMessage('bot', '✅ โค้ดเสร็จแล้ว! คุณสามารถ copy ไปใช้ได้เลย หรือขอให้ผมปรับแต่งเพิ่มเติม');
+        } else {
+          const responses = [
+            'สวัสดีครับ! ผมสามารถช่วยคุณสร้างโค้ดได้ ลองพิมพ์ว่า "สร้างเกมงูกินหาง" หรือ "ทำเว็บไซต์" ดูครับ',
+            'ผมพร้อมช่วยเขียนโค้ดให้คุณ! ไม่ว่าจะเป็นเว็บไซต์ แอพ เกม หรือ React component',
+            'ต้องการให้ผมช่วยเขียนโค้ดอะไรครับ? เช่น แคลคูเลเตอร์ เกม หรือเว็บไซต์โปรไฟล์'
+          ];
+          addMessage('bot', responses[Math.floor(Math.random() * responses.length)]);
+        }
+      } catch (error) {
+        addMessage('bot', '❌ เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    function setLoading(loading) {
+      isLoading = loading;
+      sendBtn.disabled = loading;
+      if (loading) {
+        sendText.style.display = 'none';
+        loadingSpinner.style.display = 'block';
+      } else {
+        sendText.style.display = 'block';
+        loadingSpinner.style.display = 'none';
+      }
+    }
+
+    // Event listeners
+    sendBtn.addEventListener('click', sendMessage);
+    userInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
   </script>
 </body>
 </html>
