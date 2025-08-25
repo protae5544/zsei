@@ -1,0 +1,17 @@
+{
+  "name": "zai-chatbot",
+  "version": "1.0.0",
+  "description": "Z AI Chatbot with Netlify Functions",
+  "main": "index.html",
+  "scripts": {
+    "dev": "netlify dev",
+    "build": "echo 'No build process needed for static site'",
+    "deploy": "netlify deploy --prod"
+  },
+  "dependencies": {
+    "node-fetch": "^2.6.7"
+  },
+  "devDependencies": {
+    "netlify-cli": "^17.0.0"
+  }
+}
