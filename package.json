@@ -1,17 +1,12 @@
 {
-  "name": "zai-chatbot",
+  "name": "zsei-netlify-proxy",
   "version": "1.0.0",
-  "description": "Z AI Chatbot with Netlify Functions",
-  "main": "index.html",
+  "private": true,
   "scripts": {
-    "dev": "netlify dev",
-    "build": "echo 'No build process needed for static site'",
-    "deploy": "netlify deploy --prod"
+    "start": "netlify dev",
+    "build": "echo 'No build step needed for static UI'";
   },
   "dependencies": {
     "node-fetch": "^2.6.7"
-  },
-  "devDependencies": {
-    "netlify-cli": "^17.0.0"
   }
 }
