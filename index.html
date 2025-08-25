@@ -1,89 +1,637 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="th">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Z.AI GLM-4.5 Chatbot with Code Editor</title>
-    <style>
-        body { margin: 0; padding: 0; font-family: Arial, sans-serif; display: flex; flex-direction: column; height: 100vh; }
-        #input-container { padding: 10px; background: #f0f0f0; }
-        #input { width: 80%; padding: 10px; }
-        #send { padding: 10px; }
-        #panels { flex: 1; display: flex; overflow: hidden; }
-        #chat-panel, #code-panel { flex: 1; padding: 10px; overflow-y: auto; }
-        #chat-panel { border-right: 1px solid #ccc; }
-        .message { margin-bottom: 10px; }
-        .user { text-align: right; color: blue; }
-        .ai { text-align: left; color: green; }
-    </style>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>แชทบอท Z AI (GLM4.5) - Streaming</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.js"></script>
+  <style>
+    :root {
+      --gold: #d4af37;
+      --crane-red: #b91c1c;
+      --ink: #0b0b0b;
+      --paper: #ffffff;
+      --shadow-soft: 0 6px 20px rgba(0,0,0,.15);
+      --shadow-hard: 0 12px 28px rgba(0,0,0,.25);
+      --border: rgba(0,0,0,.15);
+      --bg: #f7f5f0;
+      --bg-dark: #0b1020;
+      --text: #111;
+      --muted: #555;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, "Noto Sans Thai", "Thai Sans", sans-serif;
+      background: linear-gradient(135deg, #fff 0%, #f7f1e3 60%, #fff 100%);
+      color: var(--text);
+      margin: 0;
+    }
+
+    /* Crane art shadow accents and decorative vectors */
+    .crane-wrapper {
+      position: absolute;
+      top: -20px;
+      right: -40px;
+      width: 220px;
+      height: 220px;
+      opacity: 0.25;
+      pointer-events: none;
+      filter: drop-shadow(0 6px 18px rgba(0,0,0,.25));
+    }
+
+    /* Glass style buttons (text on transparent/low solid backgrounds) */
+    .btn-ghost {
+      background: rgba(255,255,255,.65);
+      border: 1px solid rgba(0,0,0,.15);
+      color: var(--ink);
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      backdrop-filter: blur(2px);
+      transition: transform .2s ease, background .2s ease;
+    }
+    .btn-ghost:hover {
+      background: rgba(255,255,255,.85);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0,0,0,.08);
+    }
+
+    .btn-ghost.primary {
+      background: rgba(0,0,0,0.0);
+      border: 1px solid rgba(0,0,0,.25);
+      color: #111;
+      text-shadow: 0 1px 0 rgba(255,255,255,.6);
+    }
+
+    .glass {
+      background: rgba(255,255,255,.6);
+      border: 1px solid rgba(0,0,0,.15);
+      backdrop-filter: blur(4px);
+      box-shadow: 0 6px 20px rgba(0,0,0,.08);
+    }
+
+    /* Card and chat styling with soft shadows and subtle borders */
+    .chat-container {
+      background: #ffffff;
+      border-radius: 20px;
+      padding: 22px;
+      box-shadow: var(--shadow-soft);
+      display: flex;
+      flex-direction: column;
+      min-height: 520px;
+      gap: 12px;
+    }
+
+    .chat-header {
+      position: relative;
+      padding: 12px 16px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #fff, #fff);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      overflow: hidden;
+    }
+
+    .gradient-bar {
+      height: 6px;
+      width: 100%;
+      background: linear-gradient(90deg, var(--gold), #f5c524, var(--crane-red));
+      border-radius: 3px;
+    }
+
+    .section-title {
+      font-weight: 700;
+      letter-spacing: .3px;
+      color: #111;
+    }
+
+    .subtitle {
+      font-size: 12px;
+      color: #555;
+      margin-top: 4px;
+    }
+
+    .messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px;
+      border-radius: 12px;
+      background: #fff;
+      border: 1px solid var(--border);
+      box-shadow: inset 0 1px 0 rgba(0,0,0,.03);
+    }
+
+    .message {
+      display: flex;
+      align-items: flex-start;
+      margin: 10px 0;
+      animation: fadeIn .4s ease;
+    }
+
+    .message.user { justify-content: flex-end; }
+    .message-content {
+      max-width: 70%;
+      padding: 14px 18px;
+      border-radius: 14px;
+      line-height: 1.5;
+      word-wrap: break-word;
+      border-left: 4px solid var(--gold);
+      background: #f6f6f6;
+      color: #111;
+      box-shadow: 0 4px 14px rgba(0,0,0,.08);
+    }
+    .message.user .message-content {
+      background: linear-gradient(135deg, #111, #333);
+      color: #fff;
+      border-left: 4px solid var(--gold);
+      border-top-right-radius: 4px;
+      border-bottom-right-radius: 4px;
+    }
+    .message.bot .message-content {
+      background: #fafafa;
+      border-left: 4px solid var(--gold);
+    }
+    .message.bot.streaming .message-content {
+      border-left-color: var(--crane-red);
+      animation: streamingGlow 2s infinite;
+    }
+
+    .typing-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(0,0,0,.04);
+      border: 1px solid rgba(0,0,0,.08);
+    }
+
+    .typing-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--gold);
+      border-radius: 50%;
+      animation: typing 1.2s infinite;
+    }
+    .typing-dot:nth-child(2){ animation-delay: .15s; }
+    .typing-dot:nth-child(3){ animation-delay: .3s; }
+
+    .input-container {
+      display: flex;
+      gap: 12px;
+      align-items: flex-end;
+      padding: 14px;
+      border-radius: 14px;
+      background: rgba(0,0,0,.04);
+      border: 1px solid rgba(0,0,0,.08);
+    }
+
+    .input-field {
+      flex: 1;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(0,0,0,.15);
+      font-size: 14px;
+      min-height: 48px;
+      resize: none;
+      background: #fff;
+      outline: none;
+    }
+
+    .input-field:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 4px rgba(212, 175, 55, .25);
+    }
+
+    .send-button {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      background: linear-gradient(135deg, #111, #333);
+      color: #fff;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 22px rgba(0,0,0,.25);
+    }
+
+    .send-button.streaming {
+      background: linear-gradient(135deg, var(--crane-red), var(--gold));
+      animation: streamingButton 2s infinite;
+    }
+
+    .debug-panel {
+      background: linear-gradient(135deg, #fff8e1, #fff1b8);
+      border: 2px solid #f2c94c;
+      border-radius: 14px;
+      padding: 12px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 12px;
+      max-height: 180px;
+      overflow-y: auto;
+      color: #3a2a00;
+      box-shadow: 0 8px 20px rgba(0,0,0,.08);
+    }
+    .debug-panel.dark {
+      background: linear-gradient(135deg, #2b1e0a, #1f130b);
+      border-color: #facc15;
+      color: #fbe27a;
+    }
+
+    @keyframes typing {
+      0%, 60%, 100% { transform: translateY(0); opacity: .4; }
+      30% { transform: translateY(-6px); opacity: 1; }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes streamingGlow {
+      0%, 100% { box-shadow: 0 4px 14px rgba(0,0,0,.08); }
+      50% { box-shadow: 0 6px 22px rgba(139, 92, 246, .25); }
+    }
+
+    @keyframes streamingButton {
+      0%, 100% { filter: saturate(1); }
+      50% { filter: saturate(1.25); }
+    }
+
+    @media (max-width: 768px) {
+      .chat-container { padding: 14px; min-height: auto; }
+      .messages { padding: 6px; }
+      .input-field { min-height: 48px; }
+      .send-button { width: 46px; height: 46px; }
+      .crane-wrapper { display: none; }
+    }
+  </style>
 </head>
-<body>
-    <div id="input-container">
-        <input type="text" id="input" placeholder="Type your message...">
-        <button id="send">Send</button>
+<body class="min-h-screen">
+  <div class="relative container mx-auto my-6 px-4">
+    <!-- Decorative crane vector hung on the top-right -->
+    <div class="crane-wrapper" aria-hidden="true">
+      <svg viewBox="0 0 260 260" width="100%" height="100%">
+        <defs>
+          <linearGradient id="gradGold" x1="0" x2="1" y1="0" y2="1">
+            <stop offset="0%" stop-color="#ffd56b"/>
+            <stop offset="100%" stop-color="#d4a017"/>
+          </linearGradient>
+        </defs>
+        <!-- hanging thread -->
+        <line x1="140" y1="0" x2="140" y2="30" stroke="url(#gradGold)" stroke-width="2" />
+        <!-- string -->
+        <line x1="140" y1="30" x2="60" y2="200" stroke="url(#gradGold)" stroke-width="2" />
+        <!-- crane body (vector) -->
+        <g fill="none" stroke="url(#gradGold)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M60 190 C70 150, 120 120, 150 130" />
+          <path d="M60 190 C72 165, 90 150, 110 150" />
+          <path d="M110 150 L120 140" />
+          <path d="M120 140 L110 132" />
+          <path d="M120 140 L136 120" />
+          <!-- head -->
+          <circle cx="150" cy="120" r="6" fill="url(#gradGold)" />
+          <!-- beak -->
+          <path d="M156 120 L168 118" />
+        </g>
+      </svg>
     </div>
-    <div id="panels">
-        <div id="chat-panel"></div>
-        <div id="code-panel"></div>
+
+    <!-- Header / Title -->
+    <div class="mb-4"></div>
+    <div class="rounded-lg p-4 bg-white border border-gray-200 shadow-md chat-header">
+      <div class="flex items-center justify-between w-full">
+        <div>
+          <div class="section-title text-lg md:text-xl" style="color:#111">แชทบอท Z AI</div>
+          <div class="subtitle">GLM4.5 แบบ Real-time Streaming ด้วยคำต่อคำ</div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button class="btn-ghost" id="themeBtn" onclick="toggleTheme()" aria-label="สลับธีม">ธีม</button>
+          <button class="btn-ghost" id="streamBtn" onclick="toggleStreaming()" aria-label="สลับ Streaming">
+            สตรีมมิ่ง: เปิด
+          </button>
+          <button class="btn-ghost" onclick="toggleDebug()" aria-label="ดู Debug">
+            Debug
+          </button>
+        </div>
+      </div>
+      <div class="gradient-bar mt-2"></div>
     </div>
 
-    <script>
-        const chatPanel = document.getElementById('chat-panel');
-        const codePanel = document.getElementById('code-panel');
-        const input = document.getElementById('input');
-        const send = document.getElementById('send');
+    <!-- Debug Panel -->
+    <div class="debug-panel mt-3" id="debugPanel" style="display:none;">
+      <strong>เครือข่าย Z AI Streaming Console:</strong><br>
+      <span id="debugInfo">กำลังเริ่มต้นระบบ Z AI Streaming...</span>
+    </div>
 
-        // Initialize Ace Editor
-        const editor = ace.edit('code-panel');
-        editor.setTheme('ace/theme/monokai');
-        editor.session.setMode('ace/mode/text'); // Default mode
+    <!-- Chat Area -->
+    <div class="chat-container mt-3">
+      <div class="messages" id="messages" aria-live="polite" aria-label="ข้อความแชท">
+        <div class="message bot">
+          <div class="message-content">
+            สมัครสมาชิก Z AI (เวอร์ชัน GLM4.5) พร้อม Streaming แบบเรียลไทม์
+            <br><br>
+            • ตอบข้อความแบบเรียลไทม์ โดยสลับข้อความไปตามคำที่ถูกส่ง<br>
+            • รองรับภาษาไทยและอังกฤษ<br>
+            • สามารถอธิบายได้ลึกซึ้ง และสร้างสรรค์ข้อความหลากหลาย
+            <br><br>ลองพิมพ์ข้อความแล้วกดส่งด้านล่างได้เลย
+          </div>
+        </div>
+      </div>
 
-        send.addEventListener('click', sendMessage);
-        input.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
+      <div class="input-container" role="region" aria-label="กล่องข้อความ">
+        <textarea class="input-field" id="messageInput" placeholder="พิมพ์ข้อความของคุณที่นี่ กด Enter เพื่อส่ง Shift+Enter เพื่อขึ้นบรรทัดใหม่" onkeydown="handleKeyDown(event)" oninput="autoResizeTextarea()" rows="1"></textarea>
+        <button class="send-button" id="sendButton" onclick="sendMessage()" aria-label="ส่งข้อความ">ส่ง</button>
+      </div>
+    </div>
+  </div>
 
-        async function sendMessage() {
-            const userMessage = input.value.trim();
-            if (!userMessage) return;
+  <script>
+    let isDarkMode = false;
+    let isLoading = false;
+    let debugVisible = false;
+    let apiConnected = true;
+    let streamingEnabled = true;
+    let currentStreamingMessage = null;
 
-            addMessage('user', userMessage);
-            input.value = '';
+    function updateDebugInfo(message, type = 'info') {
+      const debugInfo = document.getElementById('debugInfo');
+      const timestamp = new Date().toLocaleString('th-TH');
+      const color = (type === 'error') ? '#ef4444' : (type === 'success') ? '#10b981' : (type === 'warning') ? '#f59e0b' : (type === 'stream') ? '#8b5cf6' : '#374151';
+      const label = (type === 'error') ? '❌' : (type === 'success') ? '✅' : (type === 'warning') ? '⚠️' : (type === 'stream') ? '🌊' : 'ℹ️';
+      debugInfo.innerHTML += `<br><span style="color:${color}">${label} [${timestamp}] ${message}</span>`;
+      debugInfo.parentElement.scrollTop = debugInfo.parentElement.scrollHeight;
+      console.log(`[Z AI Debug] ${message}`);
+    }
 
+    function toggleDebug() {
+      debugVisible = !debugVisible;
+      document.getElementById('debugPanel').style.display = debugVisible ? 'block' : 'none';
+      updateDebugInfo(`Debug panel ${debugVisible ? 'เปิด' : 'ปิด'}`);
+    }
+
+    function toggleStreaming() {
+      streamingEnabled = !streamingEnabled;
+      const btn = document.getElementById('streamBtn');
+      btn.textContent = streamingEnabled ? 'สตรีมมิ่ง: เปิด' : 'สตรีมมิ่ง: ปิด';
+      btn.classList.toggle('shadow-md', streamingEnabled);
+      updateDebugInfo(`Streaming mode: ${streamingEnabled ? 'เปิด' : 'ปิด'}`, streamingEnabled ? 'stream' : 'warning');
+    }
+
+    function toggleTheme() {
+      isDarkMode = !isDarkMode;
+      // หลักๆ ยังไม่มีธีม dark ใน UI นี้ ให้ทำได้ดีขึ้นโดยการสลับคลังคลังตัวแปร
+      document.body.style.background = isDarkMode ? '#0b0a0a' : '#fff';
+      document.body.style.color = isDarkMode ? '#e5e5e5' : '#111';
+      updateDebugInfo(`ธีม ${isDarkMode ? 'มืด' : 'สว่าง'}`);
+    }
+
+    function addMessage(content, isUser = false, isError = false) {
+      const container = document.getElementById('messages');
+      const div = document.createElement('div');
+      div.className = `message ${isUser ? 'user' : 'bot'}`;
+
+      const inner = document.createElement('div');
+      inner.className = 'message-content';
+      if (isError) inner.style.borderLeftColor = '#ef4444';
+      inner.textContent = content;
+
+      div.appendChild(inner);
+      container.appendChild(div);
+      container.scrollTop = container.scrollHeight;
+      updateDebugInfo(`เพิ่มข้อความ ${isUser ? 'ผู้ใช้' : 'Z AI'} (${content.length} ตัวอักษร)`);
+      return div;
+    }
+
+    function createStreamingMessage() {
+      const container = document.getElementById('messages');
+      const div = document.createElement('div');
+      div.className = 'message bot streaming';
+      const inner = document.createElement('div');
+      inner.className = 'message-content';
+      inner.innerHTML = '<span class="streaming-cursor"></span>';
+      div.appendChild(inner);
+      container.appendChild(div);
+      container.scrollTop = container.scrollHeight;
+      return div;
+    }
+
+    function updateStreamingMessage(messageDiv, newText, isComplete = false) {
+      const inner = messageDiv.querySelector('.message-content');
+      if (isComplete) {
+        inner.textContent = newText;
+        messageDiv.classList.remove('streaming');
+      } else {
+        inner.innerHTML = newText + '<span class="streaming-cursor"></span>';
+      }
+      document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
+    }
+
+    function simulateStreaming(text, messageDiv) {
+      return new Promise(resolve => {
+        let i = 0;
+        let current = '';
+        const interval = setInterval(() => {
+          if (i < text.length) {
+            current += text[i];
+            updateStreamingMessage(messageDiv, current);
+            i++;
+          } else {
+            clearInterval(interval);
+            updateStreamingMessage(messageDiv, current, true);
+            resolve();
+          }
+        }, 40);
+      });
+    }
+
+    function showTypingIndicator() {
+      const container = document.getElementById('messages');
+      const div = document.createElement('div');
+      div.className = 'message bot';
+      div.id = 'typingIndicator';
+      const inner = document.createElement('div');
+      inner.className = 'typing-indicator';
+      inner.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
+      div.appendChild(inner);
+      container.appendChild(div);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function hideTypingIndicator() {
+      const t = document.getElementById('typingIndicator');
+      if (t) t.remove();
+    }
+
+    function autoResizeTextarea() {
+      const ta = document.getElementById('messageInput');
+      ta.style.height = 'auto';
+      ta.style.height = Math.min(ta.scrollHeight, 120) + 'px';
+    }
+
+    function handleKeyDown(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    }
+
+    async function sendMessage() {
+      if (isLoading) {
+        updateDebugInfo('ระบบกำลังประมวลผล กรุณารอสักครู่', 'warning');
+        return;
+      }
+
+      const input = document.getElementById('messageInput');
+      const message = input.value.trim();
+      if (!message) {
+        updateDebugInfo('ไม่มีข้อความให้ส่ง', 'warning');
+        return;
+      }
+
+      updateDebugInfo(`เริ่มส่งข้อความ${streamingEnabled ? ' พร้อม Streaming' : ''}: "${message.substring(0, 50)}${message.length > 50 ? '...' : ''}"`, 'stream');
+      addMessage(message, true);
+      input.value = '';
+      autoResizeTextarea();
+
+      isLoading = true;
+      const btn = document.getElementById('sendButton');
+      btn.disabled = true;
+      if (streamingEnabled) {
+        btn.classList.add('streaming');
+        updateDebugInfo('เปิด Streaming', 'stream');
+      } else {
+        showTypingIndicator();
+      }
+
+      try {
+        updateDebugInfo('กำลังเรียก Z AI API...', 'info');
+        const apiUrl = '/.netlify/functions/api';
+        const currentURL = window.location.href;
+        const requestBody = {
+          message: message,
+          model: 'glm-4v-plus',
+          temperature: 0.7,
+          max_tokens: 2000,
+          stream: streamingEnabled
+        };
+
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': streamingEnabled ? 'text/event-stream' : 'application/json'
+          },
+          body: JSON.stringify(requestBody)
+        });
+
+        updateDebugInfo(`HTTP Response: ${response.status} ${response.statusText}`, response.ok ? 'success' : 'error');
+        if (!response.ok) {
+          const err = await response.text();
+          updateDebugInfo(`Error Response: ${err}`, 'error');
+          throw new Error(`HTTP ${response.status}: ${err || response.statusText}`);
+        }
+
+        if (streamingEnabled) {
+          currentStreamingMessage = createStreamingMessage();
+
+          if (response.body && response.body.getReader) {
+            updateDebugInfo('เริ่ม Real Streaming จาก Server', 'stream');
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let fullText = '';
             try {
-                const response = await fetch('/.netlify/functions/api', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: userMessage })
-                });
-
-                if (!response.ok) throw new Error('API error');
-
-                const data = await response.json();
-                const aiResponse = data.choices[0].message.content;
-
-                addMessage('ai', aiResponse);
-                displayCode(aiResponse);
-            } catch (error) {
-                addMessage('ai', `Error: ${error.message}`);
+              while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                const chunk = decoder.decode(value, { stream: true });
+                const lines = chunk.split('\n');
+                for (const line of lines) {
+                  if (line.startsWith('data: ') && !line.includes('[DONE]')) {
+                    try {
+                      const data = JSON.parse(line.slice(6));
+                      // delta.content extraction
+                      const delta = data?.choices?.[0]?.delta?.content;
+                      if (delta) {
+                        fullText += delta;
+                        updateStreamingMessage(currentStreamingMessage, fullText);
+                      }
+                    } catch (e) {
+                      // ignore invalid JSON
+                    }
+                  }
+                }
+              }
+            } finally {
+              updateStreamingMessage(currentStreamingMessage, fullText, true);
             }
+          } else {
+            // Fallback: จำลอง Streaming ด้วยข้อมูลที่ได้
+            const data = await response.json();
+            let reply = '';
+            if (data.reply) reply = data.reply;
+            else if (data.choices && data.choices[0]) {
+              const c = data.choices[0];
+              reply = (c.message && c.message.content) ? c.message.content : (c.text || '');
+            }
+            else throw new Error('ไม่พบข้อมูลตอบกลับ');
+            await simulateStreaming(reply, currentStreamingMessage);
+          }
+        } else {
+          // Normal response
+          const data = await response.json();
+          hideTypingIndicator();
+          let reply = '';
+          if (data.reply) reply = data.reply;
+          else if (data.choices && data.choices[0]) {
+            const c = data.choices[0];
+            reply = (c.message && c.message.content) ? c.message.content : (c.text || '');
+          } else {
+            throw new Error('ไม่พบข้อมูลตอบกลับ');
+          }
+          addMessage(reply, false);
         }
+      } catch (err) {
+        addMessage(`เกิดข้อผิดพลาด: ${err?.message || err}`, false, true);
+        updateDebugInfo(`Error: ${err?.message || err}`, 'error');
+      } finally {
+        isLoading = false;
+        const b = document.getElementById('sendButton');
+        b.disabled = false;
+        b.classList.remove('streaming');
+        currentStreamingMessage = null;
+      }
+    }
 
-        function addMessage(sender, text) {
-            const div = document.createElement('div');
-            div.classList.add('message', sender);
-            div.textContent = text;
-            chatPanel.appendChild(div);
-            chatPanel.scrollTop = chatPanel.scrollHeight;
-        }
+    function init() {
+      updateDebugInfo('ระบบพร้อมใช้งาน');
+      // เปิด streaming โดยค่าเริ่มต้น
+      const streamBtn = document.getElementById('streamBtn');
+      streamBtn.textContent = streamingEnabled ? 'สตรีมมิ่ง: เปิด' : 'สตรีมมิ่ง: ปิด';
+      // ตั้งค่าพื้นฐาน
+      document.getElementById('themeBtn').textContent = 'ธีม';
+      // auto resize
+      autoResizeTextarea();
+      // เรียกสถานะ
+      updateDebugInfo('เริ่มต้น UI และสถานะ API');
+    }
 
-        function displayCode(text) {
-            let mode = 'ace/mode/text';
-            if (text.includes('def ') || text.includes('import ')) mode = 'ace/mode/python';
-            else if (text.includes('function ') || text.includes('const ')) mode = 'ace/mode/javascript';
+    // Init on load
+    window.addEventListener('load', init);
+    // Expose to window for inline attributes if needed
+    window.sendMessage = sendMessage;
+    window.toggleStreaming = toggleStreaming;
+    window.toggleDebug = toggleDebug;
+    window.toggleTheme = toggleTheme;
+  </script>
 
-            editor.session.setMode(mode);
-            editor.setValue(text, -1);
-        }
-    </script>
 </body>
 </html>
