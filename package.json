@@ -1,10 +1,10 @@
 {
-  "name": "zsei-netlify-proxy",
+  "name": "zsei-netlify-glm-proxy",
   "version": "1.0.0",
   "private": true,
   "scripts": {
     "start": "netlify dev",
-    "build": "echo 'No build step needed for static UI'";
+    "build": "echo no build step needed for static UI"
   },
   "dependencies": {
     "node-fetch": "^2.6.7"
