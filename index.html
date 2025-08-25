@@ -6,16 +6,16 @@
   <title>Z AI GLM-4.5 Proxy on Netlify</title>
   <style>
     :root {
-      --gold: #d4af37;
-      --bg: #f7f5f0;
-      --text: #111;
-      --muted: #555;
-      --card: #fff;
-      --border: #e5e5e5;
-      --shadow: 0 6px 18px rgba(0,0,0,.08);
+      --gold:#d4af37;
+      --bg:#f7f5f0;
+      --text:#111;
+      --muted:#555;
+      --card:#fff;
+      --border:#e5e5e5;
+      --shadow:0 6px 18px rgba(0,0,0,.08);
     }
-    * { box-sizing: border-box; }
-    html, body { height: 100%; }
+    * { box-sizing:border-box; }
+    html, body { height:100%; }
     body {
       font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial;
       background: linear-gradient(135deg, #fff 0%, #f6f0e0 60%, #fff 100%);
@@ -58,10 +58,10 @@
 <body>
   <div class="container">
     <!-- Overview -->
-    <div class="card" aria-label="ข้อมูลรี포">
+    <div class="card" aria-label="ข้อมูลรีโป">
       <h2>โครงสร้าง Netlify GLM-4.5 สำหรับ Z AI</h2>
       <ul>
-        <li>Index.html อยู่รากรีโพ</li>
+        <li>Index.html อยู่รากรีโป</li>
         <li>มีโฟลเดอร์ netlify/ และ netlify/functions</li>
         <li>มีไฟล์ netlify.toml</li>
         <li>มีไฟล์ package.json</li>
@@ -98,7 +98,7 @@
       <div class="row" style="margin-top:8px; align-items:center;">
         <label style="display:flex; gap:8px; align-items:center;">
           <input id="stream" type="checkbox" checked />
-          Streaming (จำลองบน UI)
+          Streaming (จริง/ SSE)
         </label>
       </div>
 
@@ -165,8 +165,8 @@
       const payload = {
         prompt: prompt,
         model: document.getElementById('model').value,
-        temperature: parseFloat(document.getElementById('temp').value) || 0.3,
-        max_tokens: parseInt(document.getElementById('maxTokens').value) || 90000,
+        temperature: parseFloat(document.getElementById('temp').value) || 0.7,
+        max_tokens: parseInt(document.getElementById('maxTokens').value) || 2000,
         stream: document.getElementById('stream').checked
       };
 
@@ -176,15 +176,39 @@
           headers: {'Content-Type':'application/json'},
           body: JSON.stringify(payload)
         });
-        const data = await res.json();
-        if(res.ok){
-          const reply = data.reply || '';
-          if(payload.stream){
-            await simulateStreaming(reply);
+
+        // Streaming path: try to handle a streaming response
+        const contentType = res.headers.get('Content-Type') || res.headers.get('content-type') || '';
+        if (res.ok && (contentType.includes('text/event-stream') || payload.stream === true)) {
+          // Real streaming via SSE-like flow
+          const reader = res.body.getReader();
+          const decoder = new TextDecoder();
+          let buffer = '';
+          while(true){
+            const {done, value} = await reader.read();
+            if(done) break;
+            buffer += decoder.decode(value, {stream: true});
+            let idx;
+            while((idx = buffer.indexOf('\n')) >= 0){
+              const line = buffer.slice(0, idx).trim();
+              buffer = buffer.slice(idx + 1);
+              if (line.startsWith('data:')) {
+                const data = line.slice(5).trim();
+                if (data) addMessage(data, false);
+              }
+            }
+          }
+        } else if (res.ok) {
+          const data = await res.json();
+          const reply = data?.reply ?? '';
+          if (payload.stream) {
+            // fallback to partial streaming if available in one shot
+            addMessage(reply, false);
           } else {
             addMessage(reply, false);
           }
         } else {
+          const data = await res.json();
           addMessage('Error: ' + (data?.error || 'Unknown error'), false);
         }
       }catch(e){
@@ -192,18 +216,6 @@
       }
     }
 
-    async function simulateStreaming(text){
-      const total = text;
-      const chunkSize = Math.max(6, Math.floor(total.length / 12));
-      let idx = 0;
-      let acc = '';
-      while(idx < total.length){
-        acc += total.substr(idx, chunkSize);
-        idx += chunkSize;
-        addMessage(acc, false);
-        await new Promise(r => setTimeout(r, 60));
-      }
-    }
   </script>
 </body>
 </html>
