@@ -1,0 +1,8 @@
+# netlify.toml
+[functions]
+  node_bundler = "esbuild"  # สำหรับ Node.js functions
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
