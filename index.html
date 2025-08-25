@@ -1,13 +1,13 @@
+<!-- interactive web application: GLM-4.5 Proxy Playground for Z AI on Netlify -->
 <!DOCTYPE html>
 <html lang="th">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Z AI GLM-4.5 Proxy Playground</title>
+  <title>Z AI GLM-4.5 Proxy on Netlify</title>
   <style>
     :root {
       --gold: #d4af37;
-      --crane-red: #b91c1c;
       --bg: #f7f5f0;
       --text: #111;
       --muted: #555;
@@ -15,54 +15,65 @@
       --border: #e5e5e5;
       --shadow: 0 6px 18px rgba(0,0,0,.08);
     }
-    *{box-sizing:border-box}
-    body{ font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans Thai", sans-serif;
-          background: linear-gradient(135deg, #fff 0, #f7f1e3 60%, #fff 100%);
-          margin:0; color:var(--text);}
-    .container{ max-width: 980px; margin:0 auto; padding:16px; display:grid; grid-template-columns:1fr 1fr; gap:16px;}
-    .card{ background:var(--card); border:1px solid var(--border); border-radius:14px; padding:14px; box-shadow:var(--shadow);}
-    h2{ font-size:1.05rem; margin:6px 0 12px;}
-    label{ font-size:12px; color:var(--muted); display:block; margin-top:8px; }
-    input, textarea, select{ width:100%; padding:10px; border:1px solid var(--border); border-radius:8px; font:inherit; }
-    textarea{ min-height:90px; resize: vertical; }
-    .row{ display:flex; gap:8px; align-items:center; }
-    .btn{ background: rgba(255,255,255,.9); border:1px solid #ccc; padding:10px 14px; border-radius:8px; font-weight:700; cursor:pointer; }
-    .btn.primary{ background: linear-gradient(135deg, var(--gold), #ffd000); border:none; }
-    .ghost{ background: rgba(255,255,255,.6); border:1px solid rgba(0,0,0,.2);}
-    .crane{ position:absolute; top: -20px; right:-40px; width:200px; opacity:.25; filter: drop-shadow(0 6px 18px rgba(0,0,0,.25)); pointer-events:none; }
-    .messages{ height:40vh; overflow:auto; border-radius:8px; padding:6px; border:1px solid var(--border); background:#fff; }
-    .message{ display:flex; margin:6px 0; }
-    .user{ justify-content:flex-end; }
-    .bubble{ max-width:70%; padding:12px 14px; border-radius:14px; background:#f2f2f2; }
-    .user .bubble{ background: linear-gradient(135deg, #111, #333); color:#fff; }
-    #debugPanel{ display:none; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:12px; padding:10px; border-radius:8px; border:1px solid var(--border); background:#fff8dc; max-height:180px; overflow:auto; }
-    @media (max-width: 900px){
-      .container{ grid-template-columns:1fr; }
-      .crane{ display:none; }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+      background: linear-gradient(135deg, #fff 0%, #f6f0e0 60%, #fff 100%);
+      color: var(--text);
+      margin: 0;
+    }
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 16px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
+      box-shadow: var(--shadow);
+    }
+    h2 { margin: 6px 0 12px; font-size: 1.05rem; }
+    label { font-size: 12px; color: var(--muted); display: block; margin-top: 8px; }
+    input, textarea, select { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; font: inherit; }
+    textarea { min-height: 90px; resize: vertical; }
+    .row { display: flex; gap: 8px; align-items: center; }
+    .btn { display: inline-block; padding: 10px 14px; border-radius: 8px; border: 1px solid #ccc; background: rgba(255,255,255,.9); cursor: pointer; font-weight: 700; }
+    .btn.primary { background: linear-gradient(135deg, var(--gold), #ffd000); border: none; }
+    .section { margin-bottom: 14px; }
+    .messages { height: 42vh; overflow: auto; border-radius: 8px; padding: 6px; border: 1px solid var(--border); background: #fff; }
+    .message { display: flex; margin: 6px 0; }
+    .user { justify-content: flex-end; }
+    .bubble { max-width: 70%; padding: 12px 14px; border-radius: 14px; background: #f2f2f2; }
+    .user .bubble { background: linear-gradient(135deg, #111, #333); color: #fff; }
+    @media (max-width: 900px) {
+      .container { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <!-- Decorative vector crane -->
-    <div class="card" style="position:relative;">
-      <svg class="crane" viewBox="0 0 260 260" width="200" height="200" aria-label=" crane-vector">
-        <defs><linearGradient id="g" x1="0" x2="1" y1="0" y2="1"><stop offset="0%" stop-color="#ffd56b"/><stop offset="100%" stop-color="#d4a017"/></linearGradient></defs>
-        <line x1="130" y1="0" x2="130" y2="40" stroke="url(#g)" stroke-width="2"/>
-        <line x1="130" y1="40" x2="60" y2="190" stroke="url(#g)" stroke-width="2"/>
-        <line x1="60" y1="190" x2="120" y2="170" stroke="url(#g)" stroke-width="2"/>
-        <circle cx="160" cy="120" r="6" fill="url(#g)"/>
-        <path d="M170 120 L184 116" stroke="url(#g)" stroke-width="2" />
-        <path d="M60 190 C70 150, 120 120, 150 130" fill="none" stroke="url(#g)" stroke-width="2"/>
-      </svg>
-      <h2>Z AI GLM-4.5 Proxy on Netlify</h2>
-      <p>UI สำหรับส่ง prompt และดูผลแบบเรียลไทม์ผ่าน GLM-4.5 โดยไม่เปิดเผย API keys ใน frontend</p>
+    <!-- Decorative header -->
+    <div class="card" aria-label="ข้อมูลรีโปร">
+      <h2>โครงสร้าง Netlify GLM-4.5 สำหรับ Z AI</h2>
+      <ul>
+        <li>Index.html อยู่ราก repo</li>
+        <li>มีโฟลเดอร์ netlify/ และ netlify/functions</li>
+        <li>มีไฟล์ netlify.toml</li>
+        <li>มีไฟล์ package.json (ถ้าต้องการ dependencies เพิ่มเติม)</li>
+      </ul>
+      <p class="note" style="color:var(--muted);">โปรเจ็กต์พร้อมสำหรับ deploy ผ่าน Netlify UI โดยไม่ต้อง expose API keys ใน frontend</p>
     </div>
 
-    <!-- Input config for Netlify/GLM -->
-    <div class="card" aria-label="Configuration">
-      <h2>Configuration</h2>
-      <div class="row">
+    <!-- UI สำหรับเรียก GLM-4.5 ผ่าน proxy -->
+    <div class="card" aria-label="Configuration & UI">
+      <h2>UI ตั้งค่า GLM-4.5</h2>
+      <div class="row" style="margin-bottom:6px;">
         <label>Prompt</label>
       </div>
       <textarea id="prompt" placeholder="พิมพ์ข้อความที่ต้องการถาม..." ></textarea>
@@ -86,40 +97,36 @@
       </div>
 
       <div class="row" style="margin-top:8px; align-items:center;">
-        <label style="display:flex; align-items:center; gap:8px;">
+        <label style="display:flex; gap:8px; align-items:center;">
           <input id="stream" type="checkbox" checked />
-          Streaming (client-side simulate)
+          Streaming (จำลองบน UI)
         </label>
       </div>
 
       <button class="btn primary" style="margin-top:8px;" onclick="sendPrompt()">ส่ง</button>
     </div>
 
-    <!-- Preview/Output -->
+    <!-- Output / Conversation -->
     <div class="card" aria-label="Conversation">
       <h2>Conversation</h2>
       <div class="messages" id="messages"></div>
     </div>
 
+    <!-- Deployment helper/envs -->
     <div class="card" aria-label="Environment & Deployment">
       <h2>Netlify Deployment Helpers</h2>
-      <p>Environment variables (ตั้งค่าใน Netlify UI):</p>
+      <p>Environment variables ที่ควรตั้งค่าใน Netlify UI</p>
       <ul>
         <li>GLM_BASE_URL: URL ของ GLM-4.5 API</li>
-        <li>GLM_API_KEY: คีย์ API (เก็บเป็น Secret ใน Netlify)</li>
+        <li>GLM_API_KEY: API key (เก็บเป็น Secret)</li>
+        <li>GLM_ENDPOINT: เช่น /glm/v1/chat/completions</li>
         <li>GLM_MODEL: glm-4.5</li>
         <li>GLM_TEMPERATURE: 0.7</li>
         <li>GLM_MAX_TOKENS: 2000</li>
-        <li>GLM_ENDPOINT: จุดที่เรียก เช่น /glm/v1/chat/completions (ขึ้นกับ docs)</li>
       </ul>
-      <p>ไฟล์ใน repo ที่เกี่ยวข้อง: netlify.toml, netlify/functions/glm-proxy.js</p>
-      <button class="btn ghost" onclick="fillSampleEnv()">แสดงค่าตัวอย่าง env</button>
-      <pre id="envSample" style="display:none; background:#f7f7f7; padding:8px; border-radius:6px;"></pre>
-    </div>
-
-    <div id="debugPanel" class="card" style="display:none;">
-      <h2>Debug</h2>
-      <div id="debugInfo" style="white-space:pre-wrap; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;"></div>
+      <p>ไฟล์ที่เกี่ยวข้อง: netlify.toml และ netlify/functions/glm-proxy.js</p>
+      <button class="btn" onclick="showEnvExample()">ดูตัวอย่าง env</button>
+      <pre id="envExample" style="display:none; background:#f7f7f7; padding:8px; border-radius:6px;"></pre>
     </div>
   </div>
 
@@ -136,16 +143,16 @@
       msgs.scrollTop = msgs.scrollHeight;
     }
 
-    function fillSampleEnv(){
+    function showEnvExample(){
       const sample = [
-        "GLM_BASE_URL=https://api.zai.example",
+        "GLM_BASE_URL=https://api.zai.example", 
         "GLM_API_KEY=REPLACE_WITH_YOUR_KEY",
-        "GLM_MODEL=glm-4.5",
+        "GLM_ENDPOINT=/glm/v1/chat/completions",
+        "GLM_MODEL glm-4.5",
         "GLM_TEMPERATURE=0.7",
-        "GLM_MAX_TOKENS=2000",
-        "GLM_ENDPOINT=/glm/v1/chat/completions"
+        "GLM_MAX_TOKENS=2000"
       ].join("\\n");
-      const el = document.getElementById('envSample');
+      const el = document.getElementById('envExample');
       el.style.display = 'block';
       el.textContent = sample;
       navigator.clipboard?.writeText(sample).then(()=> alert('Sample env copied to clipboard'));
@@ -156,16 +163,14 @@
       if(!prompt) return;
       addMessage(prompt, true);
 
-      // Prepare payload
       const payload = {
         prompt: prompt,
         model: document.getElementById('model').value,
         temperature: parseFloat(document.getElementById('temp').value) || 0.7,
-        max_tokens: parseInt(document.getElementById('maxTokens').value) || 90000,
+        max_tokens: parseInt(document.getElementById('maxTokens').value) || 2000,
         stream: document.getElementById('stream').checked
       };
 
-      // Call Netlify proxy
       try{
         const res = await fetch('/.netlify/functions/glm-proxy', {
           method: 'POST',
@@ -176,7 +181,6 @@
         if(res.ok){
           const reply = data.reply || '';
           if(payload.stream){
-            // Simulate streaming by revealing in chunks
             await simulateStreaming(reply);
           } else {
             addMessage(reply, false);
@@ -191,4 +195,16 @@
 
     async function simulateStreaming(text){
       const total = text;
-      const chunkSize = Math.max(6, Math.floor(total.length
+      const chunkSize = Math.max(6, Math.floor(total.length / 12));
+      let idx = 0;
+      let acc = '';
+      while(idx < total.length){
+        acc += total.substr(idx, chunkSize);
+        idx += chunkSize;
+        addMessage(acc, false);
+        await new Promise(r => setTimeout(r, 60));
+      }
+    }
+  </script>
+</body>
+</html>
