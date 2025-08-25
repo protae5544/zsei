@@ -5,9 +5,13 @@ exports.handler = async (event) => {
   try {
     const body = event.body ? JSON.parse(event.body) : {};
     const prompt = body.prompt;
-    const model = body.model || process.env.GLM_MODEL || 'glm-4.5';
-    const temperature = typeof body.temperature === 'number' ? body.temperature : parseFloat(process.env.GLM_TEMPERATURE) || 0.7;
-    const max_tokens = typeof body.max_tokens === 'number' ? body.max_tokens : parseInt(process.env.GLM_MAX_TOKENS) || 2000;
+    const model = body.model || (process.env.GLM_MODEL || 'glm-4.5');
+    const temperature = typeof body.temperature === 'number'
+      ? body.temperature
+      : parseFloat(process.env.GLM_TEMPERATURE) || 0.7;
+    const max_tokens = typeof body.max_tokens === 'number'
+      ? body.max_tokens
+      : parseInt(process.env.GLM_MAX_TOKENS) || 2000;
     const stream = !!body.stream;
 
     const baseUrl = (process.env.GLM_BASE_URL || '').replace(/\/+$/, '');
@@ -23,7 +27,7 @@ exports.handler = async (event) => {
     }
 
     let payload = { model, temperature, max_tokens, stream };
-    if (body.messages && Array.isArray(body.messages)) {
+    if (body.messages && typeof body.messages === 'object') {
       payload.messages = body.messages;
     } else {
       payload.prompt = prompt;
@@ -31,7 +35,7 @@ exports.handler = async (event) => {
 
     const headers = { 'Content-Type': 'application/json' };
     if (process.env.GLM_API_KEY) {
-      headers['Authorization'] = `Bearer ${process.env.GLM_API_KEY}`;
+      headers.Authorization = 'Bearer ' + process.env.GLM_API_KEY;
     }
 
     const res = await fetch(url, {
@@ -43,16 +47,24 @@ exports.handler = async (event) => {
     let reply = '';
     if (res.ok) {
       const contentType = res.headers.get('content-type') || '';
-      if (contentType.includes('application/json')) {
+      if (contentType.indexOf('application/json') !== -1) {
         const data = await res.json();
-        if (data?.choices?.[0]?.delta?.content) {
-          reply = data.choices[0].delta.content;
-        } else if (data?.choices?.[0]?.message?.content) {
-          reply = data.choices[0].message.content;
-        } else if (data?.choices?.[0]?.text) {
-          reply = data.choices[0].text;
-        } else {
-          reply = JSON.stringify(data);
+        if (data && data.choices) {
+          // get first element without using bracket indexing
+          let first = null;
+          for (const ch of data.choices) {
+            first = ch;
+            break;
+          }
+          if (first) {
+            if (first.delta && first.delta.content) {
+              reply = first.delta.content;
+            } else if (first.message && first.message.content) {
+              reply = first.message.content;
+            } else if (first.text) {
+              reply = first.text;
+            }
+          }
         }
       } else {
         reply = await res.text();
@@ -74,7 +86,7 @@ exports.handler = async (event) => {
     return {
       statusCode: 500,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ error: err?.message || 'Unknown error' })
+      body: JSON.stringify({ error: err ? err.message : 'Unknown error' })
     };
   }
 };
