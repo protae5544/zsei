@@ -1,1240 +1,1198 @@
 <!DOCTYPE html>
-<html lang="th">
+<html lang="th" class="h-full">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
-  <title>Smart Chat Optimizer - AI Code Generator</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document to Form Generator - Perfect Edition</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- PDF.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <!-- Tesseract.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/4.1.1/tesseract.min.js"></script>
+  <!-- pdf-lib -->
+  <script src="https://cdn.jsdelivr.net/npm/pdf-lib/dist/pdf-lib.min.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#5D5CDE'
+          }
+        }
+      }
+    }
+    // Set PDF.js worker
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  </script>
+  <link rel="stylesheet" href="main_layout.css">
   <style>
-    :root { 
-      --bg: #0b1020; 
-      --card: #111a2b; 
-      --text: #e8eafc; 
-      --muted: #a6b0d8; 
-      --user: #2b5cff; 
-      --bot: #1f9a3a; 
-      --code: #0e1b2a; 
-      --accent: #4ade80;
-      --danger: #ef4444;
-      --warning: #f59e0b;
-    }
+    @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap');
     
-    * { box-sizing: border-box; }
-    html, body { height: 100vh; margin: 0; overflow: hidden; }
-    
-    body { 
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      background: linear-gradient(135deg, var(--bg) 0%, #1a1a2e 100%);
-      color: var(--text); 
-      display: flex; 
-      flex-direction: column;
-      touch-action: manipulation;
-    }
+    body { font-family: 'Sarabun', 'Inter', sans-serif; }
 
-    .header {
-      background: rgba(17, 26, 43, 0.95);
-      backdrop-filter: blur(10px);
-      border-bottom: 1px solid #2d2d4a;
-      padding: 12px 16px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-shrink: 0;
-    }
-
-    .logo {
-      font-size: 1.2rem;
-      font-weight: 700;
-      color: var(--accent);
-    }
-
-    .status {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      font-size: 0.85rem;
-    }
-
-    .status-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--accent);
-      animation: pulse 2s infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
-    }
-
-    .main-container {
-      flex: 1;
-      display: flex;
-      overflow: hidden;
-    }
-
-    .chat-section {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      min-width: 0;
-    }
-
-    .controls-section {
-      width: 320px;
-      background: rgba(17, 26, 43, 0.8);
-      border-left: 1px solid #2d2d4a;
-      overflow-y: auto;
-      flex-shrink: 0;
-    }
-
-    @media (max-width: 1024px) {
-      .controls-section {
-        position: fixed;
-        top: 0;
-        right: -320px;
-        height: 100vh;
-        z-index: 1000;
-        transition: right 0.3s ease;
-        box-shadow: -4px 0 20px rgba(0,0,0,0.3);
-      }
-      
-      .controls-section.open {
-        right: 0;
-      }
-      
-      .overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0,0,0,0.5);
-        z-index: 999;
-        opacity: 0;
-        visibility: hidden;
-        transition: all 0.3s ease;
-      }
-      
-      .overlay.show {
-        opacity: 1;
-        visibility: visible;
-      }
-    }
-
-    .toggle-btn {
-      display: none;
-      background: var(--accent);
-      color: #062f1c;
-      border: none;
-      padding: 8px 12px;
-      border-radius: 6px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      cursor: pointer;
-      touch-action: manipulation;
-    }
-
-    @media (max-width: 1024px) {
-      .toggle-btn { display: block; }
-    }
-
-    #chat {
-      flex: 1;
-      overflow-y: auto;
-      padding: 16px;
-      background: rgba(10, 18, 34, 0.6);
-      margin: 8px;
-      border-radius: 12px;
-      border: 1px solid #2b2b3a;
-      scroll-behavior: smooth;
-      -webkit-overflow-scrolling: touch;
-    }
-
-    .bubble {
-      padding: 12px 16px;
-      border-radius: 16px;
-      margin: 8px 0;
-      max-width: 85%;
-      word-wrap: break-word;
-      position: relative;
-      animation: slideIn 0.3s ease;
-    }
-
-    @keyframes slideIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .user {
-      background: linear-gradient(135deg, #2b5cff 0%, #1d47d1 100%);
-      color: white;
-      margin-left: auto;
-      border-bottom-right-radius: 4px;
-    }
-
-    .bot {
-      background: linear-gradient(135deg, #1f9a3a 0%, #16803d 100%);
-      color: white;
-      margin-right: auto;
-      border-bottom-left-radius: 4px;
-    }
-
-    .code-bubble {
-      background: var(--code);
-      color: #d6e0f5;
-      font-family: 'Courier New', monospace;
-      white-space: pre-wrap;
-      border: 1px solid #334;
-      max-width: 95%;
-    }
-
-    .input-container {
-      padding: 12px 16px;
-      background: rgba(17, 26, 43, 0.95);
-      border-top: 1px solid #2d2d4a;
-      display: flex;
-      gap: 8px;
-      align-items: flex-end;
-    }
-
-    #userInput {
-      flex: 1;
-      padding: 12px 16px;
-      border-radius: 24px;
-      border: 2px solid #334;
-      background: rgba(255, 255, 255, 0.1);
-      color: var(--text);
-      font-size: 16px;
-      resize: none;
-      min-height: 44px;
-      max-height: 120px;
-      transition: border-color 0.2s;
-    }
-
-    #userInput:focus {
-      outline: none;
-      border-color: var(--accent);
-    }
-
-    #userInput::placeholder {
-      color: var(--muted);
-    }
-
-    .send-btn {
-      background: var(--accent);
-      color: #062f1c;
-      border: none;
-      border-radius: 50%;
-      width: 44px;
-      height: 44px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-      font-weight: bold;
-      transition: all 0.2s;
-      touch-action: manipulation;
-    }
-
-    .send-btn:hover {
-      background: #22c55e;
-      transform: scale(1.05);
-    }
-
-    .send-btn:active {
-      transform: scale(0.95);
-    }
-
-    .control-group {
-      padding: 16px;
-      border-bottom: 1px solid #2d2d4a;
-    }
-
-    .control-title {
-      font-size: 0.9rem;
-      font-weight: 600;
-      color: var(--accent);
-      margin-bottom: 12px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .mode-buttons {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 6px;
-      margin-bottom: 12px;
-    }
-
-    .mode-btn {
-      padding: 8px 4px;
-      border: 1px solid #445;
-      background: rgba(255, 255, 255, 0.05);
-      color: var(--text);
-      border-radius: 6px;
-      font-size: 0.8rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s;
-      text-align: center;
-    }
-
-    .mode-btn.active {
-      background: var(--accent);
-      color: #062f1c;
-      border-color: var(--accent);
-    }
-
-    .param-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-top: 12px;
-    }
-
-    .param-item {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .param-label {
-      font-size: 0.8rem;
-      color: var(--muted);
-      font-weight: 500;
-    }
-
-    .param-input {
-      padding: 6px 8px;
-      border-radius: 4px;
-      border: 1px solid #445;
-      background: rgba(255, 255, 255, 0.1);
-      color: var(--text);
-      font-size: 0.85rem;
-    }
-
-    .range-input {
-      -webkit-appearance: none;
-      width: 100%;
-      height: 4px;
-      background: #445;
+    .form-field {
+      position: absolute;
+      border: 1px solid rgba(0, 0, 255, 0.3);
+      background-color: rgba(93, 92, 222, 0.15);
+      transition: all 0.2s ease;
+      box-sizing: border-box;
+      min-width: 40px;
+      min-height: 20px;
+      z-index: 10;
+      padding: 2px 4px;
+      font-size: 14px; /* Default font size */
+      transform-origin: top left;
+      backdrop-filter: blur(0.5px);
       border-radius: 2px;
+    }
+    
+    .form-field:hover {
+      background-color: rgba(93, 92, 222, 0.3);
+    }
+    
+    .form-field.highlighted, .form-field:focus {
+      border: 2px solid #5D5CDE;
       outline: none;
+      box-shadow: 0 0 0 3px rgba(93, 92, 222, 0.2);
+      z-index: 20;
     }
 
-    .range-input::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      width: 16px;
-      height: 16px;
-      background: var(--accent);
-      border-radius: 50%;
-      cursor: pointer;
+    .edit-mode .form-field {
+        cursor: move;
+        border: 1px dashed #5D5CDE;
     }
 
-    .param-value {
-      font-size: 0.75rem;
-      color: var(--accent);
-      text-align: center;
-      font-weight: 600;
+    .resizer {
+        position: absolute;
+        width: 10px;
+        height: 10px;
+        background: #5D5CDE;
+        border: 1px solid white;
+        border-radius: 50%;
+        right: -5px;
+        bottom: -5px;
+        cursor: se-resize;
+        z-index: 30;
+        display: none;
+    }
+    .edit-mode .form-field .resizer { display: block; }
+
+    .delete-btn {
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        width: 16px;
+        height: 16px;
+        background: #ef4444;
+        color: white;
+        border-radius: 50%;
+        border: 1px solid white;
+        cursor: pointer;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        line-height: 1;
+        z-index: 30;
+    }
+    .edit-mode .form-field .delete-btn { display: flex; }
+
+    .progress-bar { transition: width 0.3s ease; }
+
+    /* Toast Notifications */
+    #toast-container {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 1000;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    .toast {
+        padding: 12px 20px;
+        border-radius: 8px;
+        color: white;
+        font-size: 14px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        opacity: 0;
+        transform: translateX(100%);
+        animation: slideIn 0.5s forwards, slideOut 0.5s 4.5s forwards;
+    }
+    .toast.info { background-color: #3b82f6; }
+    .toast.success { background-color: #22c55e; }
+    .toast.error { background-color: #ef4444; }
+    @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    @keyframes slideOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
+
+    /* Button loading spinner */
+    .btn-spinner {
+        animation: spin 1s linear infinite;
+        border-color: transparent;
+        border-top-color: white;
+        border-radius: 50%;
+        width: 1em;
+        height: 1em;
+        border-width: 2px;
+        display: inline-block;
+        margin-right: 0.5rem;
+    }
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+    /* Document container and form overlay improvements */
+    .document-container {
+        position: relative;
+        display: inline-block;
+        max-width: 100%;
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center top;
+        image-rendering: crisp-edges;
+        image-rendering: -webkit-optimize-contrast;
     }
 
-    .generate-btn {
-      width: 100%;
-      padding: 10px;
-      background: var(--accent);
-      color: #062f1c;
-      border: none;
-      border-radius: 6px;
-      font-weight: 600;
-      cursor: pointer;
-      margin-top: 12px;
-      transition: all 0.2s;
+    .form-overlay {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        background-blend-mode: multiply;
     }
 
-    .generate-btn:hover {
-      background: #22c55e;
+    .form-overlay .form-field {
+        mix-blend-mode: normal;
+        will-change: transform;
+        contain: layout style paint;
     }
 
-    .code-output {
-      background: var(--code);
-      color: #d6e0f5;
-      padding: 12px;
-      border-radius: 6px;
-      font-family: 'Courier New', monospace;
-      font-size: 0.75rem;
-      white-space: pre-wrap;
-      max-height: 200px;
-      overflow-y: auto;
-      margin-top: 8px;
-      border: 1px solid #445;
+    /* Improved field alignment */
+    .form-field input, .form-field textarea, .form-field select {
+        width: 100%;
+        height: 100%;
+        border: none;
+        background: transparent;
+        outline: none;
+        resize: none;
+        font-family: inherit;
+        font-size: inherit;
+        color: #1f2937;
+        padding: 0;
+        margin: 0;
+        line-height: 1.2;
+        vertical-align: top;
     }
 
-    .typing-indicator {
-      display: none;
-      padding: 12px 16px;
-      color: var(--muted);
-      font-style: italic;
-      font-size: 0.9rem;
+    /* Better visual integration with background */
+    .document-container.show-background .form-field {
+        background-color: rgba(255, 255, 255, 0.85);
+        border: 1px solid rgba(93, 92, 222, 0.4);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     }
 
-    .typing-indicator.show {
-      display: block;
-      animation: fadeIn 0.3s ease;
+    .document-container:not(.show-background) .form-field {
+        background-color: rgba(93, 92, 222, 0.1);
+        border: 1px solid rgba(93, 92, 222, 0.3);
     }
 
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-
-    .quick-actions {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-      margin-top: 8px;
-    }
-
-    .quick-btn {
-      padding: 6px 12px;
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid #445;
-      border-radius: 16px;
-      font-size: 0.8rem;
-      color: var(--text);
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .quick-btn:hover {
-      background: rgba(255, 255, 255, 0.2);
-    }
-
-    /* Touch-friendly improvements */
-    @media (max-width: 768px) {
-      .bubble { max-width: 95%; }
-      .param-grid { grid-template-columns: 1fr; }
-      #userInput { font-size: 16px; } /* Prevents zoom on iOS */
-    }
-
-    /* Scrollbar styling */
-    ::-webkit-scrollbar {
-      width: 6px;
-    }
-
-    ::-webkit-scrollbar-track {
-      background: rgba(255, 255, 255, 0.1);
-    }
-
-    ::-webkit-scrollbar-thumb {
-      background: var(--accent);
-      border-radius: 3px;
-    }
   </style>
 </head>
-<body>
-  <div class="overlay" id="overlay"></div>
-  
-  <header class="header">
-    <div class="logo">🤖 Smart Code Bot</div>
-    <div class="status">
-      <div class="status-dot"></div>
-      <span>พร้อมใช้งาน</span>
+<body class="min-h-full bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+  <div class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+    <!-- Header -->
+    <div class="text-center mb-8">
+      <h1 class="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent mb-2">
+        Document to Form Generator
+      </h1>
+      <p class="text-gray-600 dark:text-gray-400 text-base sm:text-lg">
+        สร้างฟอร์มที่เหมือนเอกสารต้นฉบับ 100% ด้วย AI และ OCR (Perfect Edition)
+      </p>
     </div>
-    <button class="toggle-btn" id="toggleControls">⚙️ ตั้งค่า</button>
-  </header>
 
-  <div class="main-container">
-    <section class="chat-section">
-      <div id="chat" role="log" aria-label="Chat messages">
-        <div class="bubble bot">
-          สวัสดีครับ! ผมคือ Smart Code Bot ที่สามารถสร้างโค้ดตามคำสั่งของคุณได้ 
-          พิมพ์สิ่งที่คุณต้องการให้ผมสร้าง เช่น "สร้างเว็บไซต์ To-Do List" หรือ "เขียน API สำหรับ user management"
-        </div>
-      </div>
-      
-      <div class="typing-indicator" id="typingIndicator">
-        🤖 กำลังคิดและสร้างโค้ด...
-      </div>
-
-      <div class="input-container">
-        <div class="quick-actions">
-          <button class="quick-btn" onclick="insertQuickCommand('สร้างเว็บไซต์ To-Do List แบบ responsive')">📝 To-Do App</button>
-          <button class="quick-btn" onclick="insertQuickCommand('เขียน API REST สำหรับ user management')">🔐 User API</button>
-          <button class="quick-btn" onclick="insertQuickCommand('สร้างเกม Snake ด้วย HTML Canvas')">🎮 เกม Snake</button>
-        </div>
-        <div style="display: flex; gap: 8px; align-items: flex-end; width: 100%;">
-          <textarea 
-            id="userInput" 
-            placeholder="พิมพ์คำสั่งสร้างโค้ด เช่น 'สร้างเว็บไซต์ portfolio' หรือ 'เขียน chatbot'"
-            rows="1"
-          ></textarea>
-          <button class="send-btn" id="sendBtn" aria-label="Send message">➤</button>
-        </div>
-      </div>
-    </section>
-
-    <aside class="controls-section" id="controlsSection">
-      <div class="control-group">
-        <div class="control-title">🎯 โหมดการทำงาน</div>
-        <div class="mode-buttons">
-          <button class="mode-btn active" data-mode="speed">⚡ เร็ว</button>
-          <button class="mode-btn" data-mode="quality">💎 คุณภาพ</button>
-          <button class="mode-btn" data-mode="balanced">⚖️ สมดุล</button>
-        </div>
-      </div>
-
-      <div class="control-group">
-        <div class="control-title">🔧 การตั้งค่า API</div>
-        <div style="display: flex; flex-direction: column; gap: 8px;">
-          <input 
-            id="endpoint" 
-            type="url" 
-            placeholder="API Endpoint" 
-            class="param-input"
-            value="https://api.openai.com/v1/chat/completions"
-          />
-          <input 
-            id="apiKey" 
-            type="password" 
-            placeholder="API Key" 
-            class="param-input"
-          />
-        </div>
-      </div>
-
-      <div class="control-group">
-        <div class="control-title">⚙️ พารามิเตอร์</div>
-        <div class="param-grid">
-          <div class="param-item">
-            <label class="param-label">Model</label>
-            <select id="modelSelect" class="param-input">
-              <option value="gpt-4">GPT-4</option>
-              <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
-              <option value="claude-3">Claude-3</option>
-            </select>
+    <div class="grid xl:grid-cols-3 gap-6">
+      <!-- Left Panel: Setup & Controls -->
+      <div class="space-y-6 xl:col-span-1">
+        <!-- File Upload -->
+        <div class="bg-gray-50 dark:bg-gray-800 rounded-xl p-6">
+          <h2 class="text-xl font-semibold mb-4 flex items-center">
+            <svg class="w-5 h-5 mr-2 text-primary" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd"/></svg>
+            1. อัปโหลดเอกสาร
+          </h2>
+          <div class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center">
+            <input type="file" id="fileInput" accept=".pdf,image/*" class="hidden">
+            <div id="uploadArea" class="cursor-pointer">
+              <svg class="mx-auto h-8 w-8 text-gray-400 mb-2" stroke="currentColor" fill="none" viewBox="0 0 48 48"><path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <p class="text-sm font-medium">คลิกเพื่อเลือกไฟล์</p>
+              <p class="text-xs text-gray-500">PDF, JPG, PNG</p>
+            </div>
           </div>
-
-          <div class="param-item">
-            <label class="param-label">Max Tokens</label>
-            <input id="maxTokens" type="number" min="100" max="4000" value="2000" class="param-input">
-          </div>
-
-          <div class="param-item">
-            <label class="param-label">Temperature</label>
-            <input id="temp" type="range" min="0" max="1" step="0.1" value="0.7" class="range-input">
-            <div class="param-value" id="tempVal">0.7</div>
-          </div>
-
-          <div class="param-item">
-            <label class="param-label">Top P</label>
-            <input id="topP" type="range" min="0" max="1" step="0.1" value="0.9" class="range-input">
-            <div class="param-value" id="topPVal">0.9</div>
+          <div id="progressContainer" class="hidden mt-4">
+            <div class="flex justify-between text-xs text-gray-600 dark:text-gray-400 mb-1">
+              <span id="progressText">กำลังประมวลผล...</span>
+              <span id="progressPercent">0%</span>
+            </div>
+            <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+              <div id="progressBar" class="bg-primary h-2 rounded-full progress-bar" style="width: 0%"></div>
+            </div>
           </div>
         </div>
 
-        <button class="generate-btn" id="generateCode">🚀 สร้างโค้ดตัวอย่าง</button>
-        <div class="code-output" id="codeOutput">// Code output will appear here</div>
-      </div>
+        <!-- Analysis & Template Controls -->
+        <div class="bg-gray-50 dark:bg-gray-800 rounded-xl p-6">
+          <h2 class="text-xl font-semibold mb-4 flex items-center">
+            <svg class="w-5 h-5 mr-2 text-primary" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 3.293a1 1 0 011.414 0l.001.001a1 1 0 010 1.414l-11 11a1 1 0 01-1.414 0l-5.5-5.5a1 1 0 011.414-1.414L6 13.586l10.293-10.293a1 1 0 011.414-.001z"/></svg>
+            2. วิเคราะห์และจัดการ Template
+          </h2>
+          <div class="space-y-3">
+            <button id="ocrBtn" class="w-full bg-primary text-white px-4 py-2 rounded-lg font-medium text-sm hover:bg-blue-600 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center" disabled>
+              <span class="btn-label">วิเคราะห์หน้านี้ด้วย OCR</span>
+            </button>
+            <div class="flex space-x-2">
+              <button id="importTemplateBtn" class="flex-1 bg-gray-600 text-white px-4 py-2 rounded-lg font-medium text-sm hover:bg-gray-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed" disabled>
+                Import Template
+              </button>
+              <button id="exportTemplateBtn" class="flex-1 bg-gray-600 text-white px-4 py-2 rounded-lg font-medium text-sm hover:bg-gray-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed" disabled>
+                Export Template
+              </button>
+            </div>
+            <input type="file" id="templateFileInput" class="hidden" accept=".json">
+          </div>
+        </div>
 
-      <div class="control-group">
-        <div class="control-title">📊 สถิติ</div>
-        <div style="font-size: 0.8rem; color: var(--muted);">
-          <div>Messages: <span id="messageCount">0</span></div>
-          <div>Tokens used: <span id="tokenCount">~0</span></div>
-          <div>Mode: <span id="currentMode">เร็ว</span></div>
+        <!-- Form Controls -->
+        <div class="bg-gray-50 dark:bg-gray-800 rounded-xl p-6">
+          <h2 class="text-xl font-semibold mb-4 flex items-center">
+            <svg class="w-5 h-5 mr-2 text-primary" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/></svg>
+            3. แก้ไขและส่งออก
+          </h2>
+          <div class="space-y-3">
+             <div class="flex space-x-2">
+                <button id="editModeBtn" class="flex-1 bg-green-600 text-white px-4 py-2 rounded-lg font-medium text-sm hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed" disabled>
+                    เปิดโหมดแก้ไข
+                </button>
+                <button id="addFieldBtn" class="flex-1 bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium text-sm hover:bg-indigo-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed" disabled>
+                    เพิ่มฟิลด์ใหม่
+                </button>
+            </div>
+            <button id="exportPdfBtn" class="w-full bg-red-600 text-white px-4 py-2 rounded-lg font-medium text-sm hover:bg-red-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center" disabled>
+              <span class="btn-label">Export as Filled PDF</span>
+            </button>
+            <button id="exportHtmlBtn" class="w-full bg-blue-600 text-white px-4 py-2 rounded-lg font-medium text-sm hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed" disabled>
+              Export as HTML
+            </button>
+            <button id="saveBtn" class="w-full bg-purple-600 text-white px-4 py-2 rounded-lg font-medium text-sm hover:bg-purple-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed" disabled>
+              บันทึกข้อมูลฟอร์ม (JSON)
+            </button>
+          </div>
+        </div>
+
+        <!-- Field List -->
+        <div id="fieldList" class="hidden bg-gray-50 dark:bg-gray-800 rounded-xl p-6">
+          <h2 class="text-xl font-semibold mb-4 flex items-center">
+            <svg class="w-5 h-5 mr-2 text-primary" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/></svg>
+            รายการฟิลด์ (<span id="fieldCount">0</span>)
+          </h2>
+          <div id="detectedFields" class="space-y-2 max-h-48 overflow-y-auto"></div>
         </div>
       </div>
-    </aside>
+
+      <!-- Document Display Area (Main Area) -->
+      <div class="xl:col-span-2">
+        <!-- Page Navigation Container -->
+        <div id="pageNavigationContainer" class="my-4 hidden">
+          <!-- Thumbnail Preview Bar -->
+          <div id="thumbnailPreviewBar" class="bg-gray-100 dark:bg-gray-800 p-2 rounded-lg overflow-x-auto whitespace-nowrap mb-2 flex space-x-2">
+            <!-- Thumbnails will be injected here by JS -->
+          </div>
+          <!-- Page Controls (Buttons, Input) -->
+          <div id="pageControls" class="flex items-center justify-center space-x-2 sm:space-x-4">
+            <button id="prevPageBtn" title="Previous Page" class="px-3 py-1 sm:px-4 sm:py-2 bg-gray-300 dark:bg-gray-700 rounded hover:bg-gray-400 dark:hover:bg-gray-600 text-sm sm:text-base transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
+            </button>
+            <div class="text-xs sm:text-sm flex items-center">
+              Page
+              <input type="number" id="pageNumberInput" class="w-12 sm:w-16 mx-1 sm:mx-2 text-center border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" value="1" min="1">
+              of <span id="totalPages">1</span>
+            </div>
+            <button id="nextPageBtn" title="Next Page" class="px-3 py-1 sm:px-4 sm:py-2 bg-gray-300 dark:bg-gray-700 rounded hover:bg-gray-400 dark:hover:bg-gray-600 text-sm sm:text-base transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Generated Form -->
+        <div id="formPreview" class="hidden">
+          <div class="flex justify-between items-center mb-3">
+            <h3 class="text-lg font-semibold">ฟอร์มที่สร้างขึ้น: <span id="currentPageDisplay_form" class="text-sm font-normal"></span></h3>
+            <div class="flex items-center space-x-2">
+              <label class="flex items-center text-sm">
+                <input type="checkbox" id="showBackground" class="mr-2" checked>
+                แสดงภาพพื้นหลัง
+              </label>
+            </div>
+          </div>
+          <div class="bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
+            <div id="formContainer" class="document-container form-overlay bg-white rounded-lg overflow-hidden">
+              <!-- Generated form will appear here -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Initial State / Processing Status -->
+        <div id="initialState" class="text-center py-12 bg-gray-50 dark:bg-gray-800 rounded-xl">
+          <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" /></svg>
+          <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">ไม่มีเอกสาร</h3>
+          <p class="mt-1 text-sm text-gray-500">เริ่มต้นโดยการอัปโหลดไฟล์ PDF หรือรูปภาพ</p>
+        </div>
+        <div id="processingStatus" class="hidden text-center py-12">
+          <div class="loading-spinner w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p id="statusMessage" class="text-lg font-medium">กำลังวิเคราะห์เอกสาร...</p>
+          <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">กรุณารอสักครู่</p>
+        </div>
+      </div>
+    </div>
   </div>
 
+  <!-- Toast Notification Container -->
+  <div id="toast-container"></div>
+
   <script>
-    // State management
-    let currentMode = 'speed';
-    let messages = [];
-    let messageCount = 0;
-    let estimatedTokens = 0;
+  // --- Global State & Constants ---
+  const appState = {
+    selectedFile: null,
+    selectedFileBuffer: null,
+    allDocumentData: {}, // { 1: {fields: [...], ...}, 2: {fields: [...]} }
+    isEditMode: false,
+    currentPdf: null,
+    currentPageNum: 1,
+    thaiFontBuffer: null,
+    nextFieldId: 0,
+  };
 
-    // DOM elements
-    const chatEl = document.getElementById('chat');
-    const userInput = document.getElementById('userInput');
-    const sendBtn = document.getElementById('sendBtn');
-    const typingIndicator = document.getElementById('typingIndicator');
-    const toggleControls = document.getElementById('toggleControls');
-    const controlsSection = document.getElementById('controlsSection');
-    const overlay = document.getElementById('overlay');
-    const modeButtons = document.querySelectorAll('.mode-btn');
-    const tempSlider = document.getElementById('temp');
-    const topPSlider = document.getElementById('topP');
-    const tempVal = document.getElementById('tempVal');
-    const topPVal = document.getElementById('topPVal');
-    const generateCodeBtn = document.getElementById('generateCode');
-    const codeOutput = document.getElementById('codeOutput');
-    const messageCountEl = document.getElementById('messageCount');
-    const tokenCountEl = document.getElementById('tokenCount');
-    const currentModeEl = document.getElementById('currentMode');
+  // --- DOM Element Cache ---
+  const dom = {
+    get: (id) => document.getElementById(id),
+    query: (sel) => document.querySelector(sel),
+    queryAll: (sel) => document.querySelectorAll(sel),
+  };
+  dom.fileInput = dom.get('fileInput');
+  dom.uploadArea = dom.get('uploadArea');
+  dom.formContainer = dom.get('formContainer');
+  // ... cache other frequently used elements as needed
 
-    // Auto-resize textarea
-    userInput.addEventListener('input', function() {
-      this.style.height = 'auto';
-      this.style.height = this.scrollHeight + 'px';
-    });
-
-    // Toggle controls panel
-    toggleControls.addEventListener('click', () => {
-      controlsSection.classList.toggle('open');
-      overlay.classList.toggle('show');
-    });
-
-    overlay.addEventListener('click', () => {
-      controlsSection.classList.remove('open');
-      overlay.classList.remove('show');
-    });
-
-    // Mode selection
-    modeButtons.forEach(btn => {
-      btn.addEventListener('click', () => {
-        modeButtons.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        currentMode = btn.dataset.mode;
-        currentModeEl.textContent = btn.textContent;
-        optimizeParameters();
-      });
-    });
-
-    // Parameter updates
-    tempSlider.addEventListener('input', () => {
-      tempVal.textContent = tempSlider.value;
-    });
-
-    topPSlider.addEventListener('input', () => {
-      topPVal.textContent = topPSlider.value;
-    });
-
-    // Quick command insertion
-    function insertQuickCommand(command) {
-      userInput.value = command;
-      userInput.focus();
-    }
-
-    // Add message to chat
-    function addMessage(role, content, isCode = false) {
-      const bubble = document.createElement('div');
-      bubble.className = `bubble ${role}${isCode ? ' code-bubble' : ''}`;
-      
-      if (role === 'user') {
-        bubble.textContent = content;
-      } else {
-        bubble.innerHTML = formatBotMessage(content, isCode);
-      }
-      
-      chatEl.appendChild(bubble);
-      chatEl.scrollTop = chatEl.scrollHeight;
-      
-      messageCount++;
-      messageCountEl.textContent = messageCount;
-      estimatedTokens += Math.ceil(content.length / 4);
-      tokenCountEl.textContent = `~${estimatedTokens}`;
-    }
-
-    // Format bot messages
-    function formatBotMessage(content, isCode) {
-      if (isCode) {
-        return content;
-      }
-      
-      // Simple markdown-like formatting
-      return content
-        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-        .replace(/\*(.*?)\*/g, '<em>$1</em>')
-        .replace(/`(.*?)`/g, '<code style="background: rgba(255,255,255,0.1); padding: 2px 4px; border-radius: 3px;">$1</code>');
-    }
-
-    // Optimize parameters based on mode
-    function optimizeParameters() {
-      const maxTokensEl = document.getElementById('maxTokens');
-      
-      switch(currentMode) {
-        case 'speed':
-          tempSlider.value = '0.3';
-          topPSlider.value = '0.8';
-          maxTokensEl.value = '1000';
-          break;
-        case 'quality':
-          tempSlider.value = '0.7';
-          topPSlider.value = '0.9';
-          maxTokensEl.value = '3000';
-          break;
-        case 'balanced':
-          tempSlider.value = '0.5';
-          topPSlider.value = '0.85';
-          maxTokensEl.value = '2000';
-          break;
-      }
-      
-      tempVal.textContent = tempSlider.value;
-      topPVal.textContent = topPSlider.value;
-    }
-
-    // Generate code example
-    generateCodeBtn.addEventListener('click', () => {
-      const params = {
-        model: document.getElementById('modelSelect').value,
-        temperature: parseFloat(tempSlider.value),
-        max_tokens: parseInt(document.getElementById('maxTokens').value),
-        top_p: parseFloat(topPSlider.value)
-      };
-      
-      const codeExample = `// API Call Example
-const response = await fetch('${document.getElementById('endpoint').value}', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'Authorization': 'Bearer YOUR_API_KEY'
-  },
-  body: JSON.stringify({
-    model: "${params.model}",
-    messages: [
-      {role: "system", content: "You are a helpful coding assistant"},
-      {role: "user", content: "Create a responsive website"}
-    ],
-    temperature: ${params.temperature},
-    max_tokens: ${params.max_tokens},
-    top_p: ${params.top_p}
-  })
-});
-
-const data = await response.json();
-console.log(data.choices[0].message.content);`;
-      
-      codeOutput.textContent = codeExample;
-    });
-
-    // Simulate AI response (replace with actual API call)
-    async function simulateAIResponse(userMessage) {
-      // Show typing indicator
-      typingIndicator.classList.add('show');
-      
-      await new Promise(resolve => setTimeout(resolve, 1500 + Math.random() * 2000));
-      
-      // Hide typing indicator
-      typingIndicator.classList.remove('show');
-      
-      // Simulate different types of responses based on keywords
-      if (userMessage.includes('เว็บไซต์') || userMessage.includes('website')) {
-        return {
-          message: "ได้เลยครับ! ผมจะสร้างเว็บไซต์ที่คุณต้องการให้",
-          code: generateWebsiteCode(userMessage)
-        };
-      } else if (userMessage.includes('API') || userMessage.includes('backend')) {
-        return {
-          message: "ผมจะสร้าง API backend สำหรับคุณ",
-          code: generateAPICode(userMessage)
-        };
-      } else if (userMessage.includes('เกม') || userMessage.includes('game')) {
-        return {
-          message: "สนุกดี! มาสร้างเกมกันเลย",
-          code: generateGameCode(userMessage)
-        };
-      } else {
-        return {
-          message: "ผมเข้าใจแล้ว ให้ผมสร้างโค้ดตามที่คุณต้องการ",
-          code: generateGenericCode(userMessage)
-        };
-      }
-    }
-
-    // Code generators (simplified examples)
-    function generateWebsiteCode(request) {
-      return `<!DOCTYPE html>
-<html lang="th">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Website</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: #333;
-        }
-        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
-        header { 
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 2rem 0;
-            text-align: center;
-        }
-        .hero { padding: 4rem 0; background: #f8f9fa; }
-        .features { padding: 3rem 0; }
-        .feature-grid { 
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-            margin-top: 2rem;
-        }
-        .feature-card {
-            background: white;
-            padding: 2rem;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            transition: transform 0.3s ease;
-        }
-        .feature-card:hover { transform: translateY(-5px); }
-        footer { background: #333; color: white; padding: 2rem 0; text-align: center; }
-        @media (max-width: 768px) {
-            .feature-grid { grid-template-columns: 1fr; }
-        }
-    </style>
-</head>
-<body>
-    <header>
-        <div class="container">
-            <h1>Welcome to My Website</h1>
-            <p>สร้างด้วย Smart Code Bot</p>
-        </div>
-    </header>
-    
-    <section class="hero">
-        <div class="container">
-            <h2>Modern Responsive Design</h2>
-            <p>เว็บไซต์ที่ใช้งานได้ทุกอุปกรณ์</p>
-        </div>
-    </section>
-    
-    <section class="features">
-        <div class="container">
-            <h2>Features</h2>
-            <div class="feature-grid">
-                <div class="feature-card">
-                    <h3>📱 Responsive</h3>
-                    <p>ใช้งานได้ทุกขนาดหน้าจอ</p>
-                </div>
-                <div class="feature-card">
-                    <h3>⚡ Fast</h3>
-                    <p>โหลดเร็ว ประสิทธิภาพสูง</p>
-                </div>
-                <div class="feature-card">
-                    <h3>🎨 Modern</h3>
-                    <p>ดีไซน์ทันสมัย สวยงาม</p>
-                </div>
-            </div>
-        </div>
-    </section>
-    
-    <footer>
-        <div class="container">
-            <p>&copy; 2025 My Website. Created with Smart Code Bot.</p>
-        </div>
-    </footer>
-</body>
-</html>`;
-    }
-
-    function generateAPICode(request) {
-      return `// Node.js Express API
-const express = require('express');
-const cors = require('cors');
-const app = express();
-
-// Middleware
-app.use(cors());
-app.use(express.json());
-
-// Sample data
-let users = [
-    { id: 1, name: 'John Doe', email: 'john@example.com' },
-    { id: 2, name: 'Jane Smith', email: 'jane@example.com' }
-];
-
-// Routes
-app.get('/api/users', (req, res) => {
-    res.json({ success: true, data: users });
-});
-
-app.get('/api/users/:id', (req, res) => {
-    const user = users.find(u => u.id === parseInt(req.params.id));
-    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
-    res.json({ success: true, data: user });
-});
-
-app.post('/api/users', (req, res) => {
-    const { name, email } = req.body;
-    const newUser = {
-        id: users.length + 1,
-        name,
-        email
-    };
-    users.push(newUser);
-    res.status(201).json({ success: true, data: newUser });
-});
-
-app.put('/api/users/:id', (req, res) => {
-    const user = users.find(u => u.id === parseInt(req.params.id));
-    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
-    
-    const { name, email } = req.body;
-    user.name = name || user.name;
-    user.email = email || user.email;
-    
-    res.json({ success: true, data: user });
-});
-
-app.delete('/api/users/:id', (req, res) => {
-    const index = users.findIndex(u => u.id === parseInt(req.params.id));
-    if (index === -1) return res.status(404).json({ success: false, message: 'User not found' });
-    
-    users.splice(index, 1);
-    res.json({ success: true, message: 'User deleted' });
-});
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(\`Server running on port \${PORT}\`);
-});
-
-// package.json
-{
-  "name": "user-api",
-  "version": "1.0.0",
-  "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js"
-  },
-  "dependencies": {
-    "express": "^4.18.0",
-    "cors": "^2.8.5"
-  },
-  "devDependencies": {
-    "nodemon": "^2.0.20"
+  // --- Dark Mode Support ---
+  if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    document.documentElement.classList.add('dark');
   }
-}`;
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+    document.documentElement.classList.toggle('dark', event.matches);
+  });
+
+  // --- Utility Functions ---
+  function showToast(message, type = 'info') { // types: info, success, error
+    const container = dom.get('toast-container');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.textContent = message;
+    container.appendChild(toast);
+    setTimeout(() => {
+        toast.remove();
+    }, 5000);
+  }
+
+  function updateProgress(percent, text) {
+    const container = dom.get('progressContainer');
+    if (percent > 0 && percent < 100) {
+        container.classList.remove('hidden');
+        dom.get('progressBar').style.width = `${percent}%`;
+        dom.get('progressPercent').textContent = `${Math.round(percent)}%`;
+        if (text) dom.get('progressText').textContent = text;
+    } else {
+        container.classList.add('hidden');
+    }
+  }
+
+  function download(data, filename, type) {
+    const blob = new Blob([data], { type });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  async function toggleButtonLoading(btnId, isLoading) {
+    const button = dom.get(btnId);
+    const label = button.querySelector('.btn-label');
+    if (isLoading) {
+        button.disabled = true;
+        if (label) label.style.display = 'none';
+        const spinner = document.createElement('div');
+        spinner.className = 'btn-spinner';
+        button.prepend(spinner);
+    } else {
+        button.disabled = false;
+        if (label) label.style.display = 'inline';
+        const spinner = button.querySelector('.btn-spinner');
+        if (spinner) spinner.remove();
+    }
+  }
+
+  // --- Font Loading ---
+  async function loadThaiFont() {
+    if (appState.thaiFontBuffer) return appState.thaiFontBuffer;
+    try {
+        // Using a reliable CDN for the Sarabun font
+        const fontUrl = 'https://fonts.gstatic.com/s/sarabun/v14/DtVjJx26TKEr37c9YHZJ_A.ttf';
+        const fontBytes = await fetch(fontUrl).then(res => res.arrayBuffer());
+        appState.thaiFontBuffer = fontBytes;
+        return fontBytes;
+    } catch (error) {
+        console.error("Could not load Thai font:", error);
+        showToast("ไม่สามารถโหลดฟอนต์ภาษาไทยได้ การ Export PDF อาจมีปัญหา", "error");
+        return null;
+    }
+  }
+
+
+  // --- File Handling & Initial Display ---
+  async function handleFileSelect(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    resetState();
+    appState.selectedFile = file;
+    updateProgress(10, 'กำลังโหลดไฟล์...');
+    dom.get('initialState').classList.add('hidden');
+    dom.get('processingStatus').classList.remove('hidden');
+    dom.get('statusMessage').textContent = 'กำลังโหลดไฟล์...';
+
+    appState.selectedFileBuffer = await file.arrayBuffer();
+
+    if (file.type === 'application/pdf') {
+        await processPDF(appState.selectedFileBuffer);
+    } else if (file.type.startsWith('image/')) {
+        await processImage(file);
+    }
+    
+    // Enable analysis buttons
+    dom.get('ocrBtn').disabled = false;
+    dom.get('importTemplateBtn').disabled = false;
+  }
+
+  function resetState() {
+    Object.assign(appState, {
+        selectedFile: null,
+        selectedFileBuffer: null,
+        allDocumentData: {},
+        isEditMode: false,
+        currentPdf: null,
+        currentPageNum: 1,
+        nextFieldId: 0,
+    });
+
+    dom.get('formPreview').classList.add('hidden');
+    dom.get('pageNavigationContainer').classList.add('hidden');
+    dom.get('fieldList').classList.add('hidden');
+    dom.get('initialState').classList.remove('hidden');
+    dom.get('processingStatus').classList.add('hidden');
+    
+    // Disable all control buttons
+    ['ocrBtn', 'importTemplateBtn', 'exportTemplateBtn', 'editModeBtn', 'addFieldBtn', 'exportPdfBtn', 'exportHtmlBtn', 'saveBtn'].forEach(id => dom.get(id).disabled = true);
+    dom.fileInput.value = "";
+    if (appState.isEditMode) toggleEditMode(); // Ensure edit mode is off
+  }
+
+  async function processPDF(arrayBuffer) {
+    try {
+        updateProgress(20, 'กำลังแปลง PDF...');
+        appState.currentPdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+        appState.currentPageNum = 1;
+        
+        await goToPage(1, true); // Go to first page and try to extract AcroForm fields
+        
+        updateProgress(80, `พร้อมสำหรับการวิเคราะห์ (แสดงหน้า 1/${appState.currentPdf.numPages})`);
+        updatePageControls();
+        await generateThumbnails();
+        
+    } catch (error) {
+        console.error('Error processing PDF:', error);
+        showToast('เกิดข้อผิดพลาดในการประมวลผล PDF: ' + error.message, 'error');
+        resetState();
+    } finally {
+        updateProgress(0);
+        dom.get('processingStatus').classList.add('hidden');
+    }
+  }
+
+  async function processImage(file) {
+    try {
+        updateProgress(20, 'กำลังโหลดภาพ...');
+        const tempCanvas = document.createElement('canvas');
+        const tempContext = tempCanvas.getContext('2d');
+        const img = new Image();
+        
+        const loadPromise = new Promise((resolve, reject) => {
+            img.onload = () => {
+                tempCanvas.width = img.width;
+                tempCanvas.height = img.height;
+                tempContext.drawImage(img, 0, 0);
+                resolve();
+            };
+            img.onerror = reject;
+            img.src = URL.createObjectURL(file);
+        });
+
+        await loadPromise;
+
+        appState.allDocumentData[1] = {
+            imageWidth: img.width,
+            imageHeight: img.height,
+            fields: [],
+            source: 'image',
+            backgroundUrl: tempCanvas.toDataURL('image/jpeg', 0.9)
+        };
+        
+        showResultsForPage(1);
+        updatePageControls();
+
+    } catch (error) {
+        console.error('Error processing image:', error);
+        showToast('เกิดข้อผิดพลาดในการประมวลผลภาพ: ' + error.message, 'error');
+        resetState();
+    } finally {
+        updateProgress(0);
+        dom.get('processingStatus').classList.add('hidden');
+    }
+  }
+
+  // --- Page Navigation ---
+  async function goToPage(num, extractAcroForm = false) {
+    if (!appState.currentPdf || num < 1 || num > appState.currentPdf.numPages) return;
+    
+    appState.currentPageNum = num;
+    dom.get('processingStatus').classList.remove('hidden');
+    dom.get('statusMessage').textContent = `กำลังแสดงหน้า ${num}...`;
+
+    // If data for this page doesn't exist, create it
+    if (!appState.allDocumentData[num]) {
+        const page = await appState.currentPdf.getPage(num);
+        const scale = 2.0;
+        const viewport = page.getViewport({ scale });
+        const tempCanvas = document.createElement('canvas');
+        const tempContext = tempCanvas.getContext('2d');
+        tempCanvas.height = viewport.height;
+        tempCanvas.width = viewport.width;
+        await page.render({ canvasContext: tempContext, viewport }).promise;
+
+        appState.allDocumentData[num] = {
+            imageWidth: viewport.width,
+            imageHeight: viewport.height,
+            fields: [],
+            source: 'pdf',
+            backgroundUrl: tempCanvas.toDataURL('image/jpeg', 0.9)
+        };
+        
+        if (extractAcroForm) {
+            dom.get('statusMessage').textContent = `กำลังตรวจสอบฟิลด์...`;
+            const acroFields = await extractPDFFormFieldsForPage(appState.currentPdf, num, viewport);
+            if (acroFields.length > 0) {
+                appState.allDocumentData[num].fields = acroFields;
+                appState.allDocumentData[num].source = 'pdf-fields';
+            }
+        }
+    }
+    
+    showResultsForPage(num);
+    updatePageControls();
+    highlightCurrentThumbnail();
+    dom.get('processingStatus').classList.add('hidden');
+  }
+
+  function updatePageControls() {
+    const numPages = appState.currentPdf ? appState.currentPdf.numPages : (appState.selectedFile ? 1 : 0);
+    if (numPages > 0) {
+        dom.get('pageNavigationContainer').classList.remove('hidden');
+        dom.get('totalPages').textContent = numPages;
+        dom.get('pageNumberInput').value = appState.currentPageNum;
+        dom.get('pageNumberInput').max = numPages;
+        dom.get('prevPageBtn').disabled = appState.currentPageNum <= 1;
+        dom.get('nextPageBtn').disabled = appState.currentPageNum >= numPages;
+        dom.get('pageControls').style.display = numPages > 1 ? 'flex' : 'none';
+    } else {
+        dom.get('pageNavigationContainer').classList.add('hidden');
+    }
+  }
+
+  // --- Thumbnail Generation ---
+  async function generateThumbnails() {
+    if (!appState.currentPdf || appState.currentPdf.numPages <= 1) {
+        dom.get('thumbnailPreviewBar').classList.add('hidden');
+        return;
+    }
+    const bar = dom.get('thumbnailPreviewBar');
+    bar.innerHTML = '';
+    bar.classList.remove('hidden');
+
+    for (let i = 1; i <= appState.currentPdf.numPages; i++) {
+        const page = await appState.currentPdf.getPage(i);
+        const viewport = page.getViewport({ scale: 0.2 });
+        const canvas = document.createElement('canvas');
+        canvas.height = viewport.height;
+        canvas.width = viewport.width;
+        canvas.className = 'thumbnail-canvas border border-gray-400 dark:border-gray-600 rounded cursor-pointer hover:border-primary dark:hover:border-primary transition-all';
+        canvas.dataset.pageNum = i;
+        await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+        canvas.addEventListener('click', () => goToPage(i));
+        bar.appendChild(canvas);
+    }
+    highlightCurrentThumbnail();
+  }
+
+  function highlightCurrentThumbnail() {
+    dom.queryAll('.thumbnail-canvas').forEach(thumb => {
+        const isCurrent = parseInt(thumb.dataset.pageNum) === appState.currentPageNum;
+        thumb.classList.toggle('border-primary', isCurrent);
+        thumb.classList.toggle('ring-2', isCurrent);
+        thumb.classList.toggle('ring-primary', isCurrent);
+        if (isCurrent) {
+            thumb.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        }
+    });
+  }
+
+  // --- Field Extraction (AcroForm & OCR) ---
+  async function extractPDFFormFieldsForPage(pdf, pageNum, viewport) {
+    const page = await pdf.getPage(pageNum);
+    const annotations = await page.getAnnotations();
+    const fields = [];
+    
+    annotations.forEach(annotation => {
+        if (annotation.subtype === 'Widget' && annotation.fieldType) {
+            const rect = annotation.rect; // [x1, y1, x2, y2] in PDF points
+            const field = {
+                id: `field_${appState.nextFieldId++}`,
+                fieldName: annotation.fieldName || `field_${pageNum}_${fields.length}`,
+                type: { 'Tx': 'text', 'Ch': 'select', 'Btn': 'checkbox' }[annotation.fieldType] || 'text',
+                page: pageNum,
+                position: {
+                    x: (rect[0] / viewport.width) * 100,
+                    y: ((viewport.height - rect[3]) / viewport.height) * 100,
+                },
+                size: {
+                    width: ((rect[2] - rect[0]) / viewport.width) * 100,
+                    height: ((rect[3] - rect[1]) / viewport.height) * 100,
+                },
+                value: annotation.fieldValue || ''
+            };
+            fields.push(field);
+        }
+    });
+    return fields;
+  }
+
+  async function runOCRForCurrentPage() {
+    await toggleButtonLoading('ocrBtn', true);
+    dom.get('processingStatus').classList.remove('hidden');
+    dom.get('statusMessage').textContent = 'กำลังเตรียมข้อมูลสำหรับ OCR...';
+    
+    const pageData = appState.allDocumentData[appState.currentPageNum];
+    if (!pageData) {
+        showToast("ไม่พบข้อมูลสำหรับหน้านี้", "error");
+        await toggleButtonLoading('ocrBtn', false);
+        return;
     }
 
-    function generateGameCode(request) {
-      return `<!DOCTYPE html>
-<html lang="th">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Snake Game</title>
-    <style>
-        body { 
-            margin: 0; 
-            padding: 20px;
-            background: #222; 
-            color: white; 
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        canvas { 
-            border: 2px solid #fff; 
-            background: #000;
-            touch-action: none;
-        }
-        .controls { 
-            margin: 20px 0; 
-            display: grid;
-            grid-template-columns: repeat(3, 60px);
-            gap: 10px;
-            justify-items: center;
-        }
-        .btn { 
-            width: 50px; 
-            height: 50px; 
-            border: none; 
-            background: #4CAF50; 
-            color: white; 
-            border-radius: 5px;
-            font-size: 20px;
-            cursor: pointer;
-        }
-        .score { font-size: 24px; margin: 10px 0; }
-        @media (max-width: 600px) {
-            canvas { width: 90vw; height: 90vw; }
-        }
-    </style>
-</head>
-<body>
-    <h1>🐍 Snake Game</h1>
-    <div class="score">Score: <span id="score">0</span></div>
-    <canvas id="gameCanvas" width="400" height="400"></canvas>
-    
-    <div class="controls">
-        <div></div>
-        <button class="btn" onclick="changeDirection('up')">↑</button>
-        <div></div>
-        <button class="btn" onclick="changeDirection('left')">←</button>
-        <button class="btn" onclick="resetGame()">🔄</button>
-        <button class="btn" onclick="changeDirection('right')">→</button>
-        <div></div>
-        <button class="btn" onclick="changeDirection('down')">↓</button>
-        <div></div>
-    </div>
-
-    <script>
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        const scoreElement = document.getElementById('score');
-
-        const gridSize = 20;
-        const tileCount = canvas.width / gridSize;
-
-        let snake = [{ x: 10, y: 10 }];
-        let food = { x: 15, y: 15 };
-        let dx = 0, dy = 0;
-        let score = 0;
-
-        function drawGame() {
-            clearCanvas();
-            moveSnake();
-            drawSnake();
-            drawFood();
-            checkGameEnd();
-        }
-
-        function clearCanvas() {
-            ctx.fillStyle = 'black';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-        }
-
-        function drawSnake() {
-            ctx.fillStyle = 'lime';
-            snake.forEach(segment => {
-                ctx.fillRect(segment.x * gridSize, segment.y * gridSize, gridSize - 2, gridSize - 2);
-            });
-        }
-
-        function drawFood() {
-            ctx.fillStyle = 'red';
-            ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize - 2, gridSize - 2);
-        }
-
-        function moveSnake() {
-            const head = { x: snake[0].x + dx, y: snake[0].y + dy };
-            snake.unshift(head);
-
-            if (head.x === food.x && head.y === food.y) {
-                score += 10;
-                scoreElement.textContent = score;
-                generateFood();
-            } else {
-                snake.pop();
+    try {
+        const worker = await Tesseract.createWorker('tha+eng', 1, {
+            logger: m => {
+                if (m.status === 'recognizing text') {
+                    dom.get('statusMessage').textContent = `กำลังรู้จำข้อความ... ${Math.round(m.progress * 100)}%`;
+                }
             }
-        }
+        });
+        
+        const { data } = await worker.recognize(pageData.backgroundUrl);
+        await worker.terminate();
+        
+        dom.get('statusMessage').textContent = 'กำลังวิเคราะห์ฟิลด์...';
+        const ocrFields = processOCRResults(data, pageData.imageWidth, pageData.imageHeight);
+        
+        const existingFieldNames = new Set(pageData.fields.map(f => f.fieldName));
+        ocrFields.forEach(field => {
+            if (!existingFieldNames.has(field.fieldName)) {
+                pageData.fields.push(field);
+            }
+        });
+        
+        pageData.source = 'ocr';
+        showResultsForPage(appState.currentPageNum);
+        showToast(`OCR พบ ${ocrFields.length} ฟิลด์ใหม่`, 'success');
+    } catch (error) {
+        console.error("OCR Error:", error);
+        showToast("เกิดข้อผิดพลาดระหว่างการทำ OCR", "error");
+    } finally {
+        dom.get('processingStatus').classList.add('hidden');
+        await toggleButtonLoading('ocrBtn', false);
+    }
+  }
 
-        function generateFood() {
-            food = {
-                x: Math.floor(Math.random() * tileCount),
-                y: Math.floor(Math.random() * tileCount)
+  function processOCRResults(ocrData, imageWidth, imageHeight) {
+    const fields = [];
+    const lines = ocrData.lines;
+
+    lines.forEach(line => {
+        const lineText = line.text.trim();
+        if (lineText.endsWith(':') || lineText.endsWith(')')) {
+            const labelText = lineText.replace(/[:)]/g, '').trim();
+            if (!labelText) return;
+            const bbox = line.bbox;
+            
+            const field = {
+                id: `field_${appState.nextFieldId++}`,
+                fieldName: labelText.toLowerCase().replace(/\s+/g, '_'),
+                type: 'text',
+                page: appState.currentPageNum,
+                position: {
+                    x: ((bbox.x1 + 10) / imageWidth) * 100,
+                    y: (bbox.y0 / imageHeight) * 100,
+                },
+                size: {
+                    width: 30,
+                    height: ((bbox.y1 - bbox.y0) / imageHeight) * 100,
+                },
+                value: ''
             };
+            fields.push(field);
         }
+    });
+    return fields;
+  }
 
-        function changeDirection(direction) {
-            switch(direction) {
-                case 'up': if (dy === 0) { dx = 0; dy = -1; } break;
-                case 'down': if (dy === 0) { dx = 0; dy = 1; } break;
-                case 'left': if (dx === 0) { dx = -1; dy = 0; } break;
-                case 'right': if (dx === 0) { dx = 1; dy = 0; } break;
+  // --- Form Generation & Display ---
+  function showResultsForPage(pageNum) {
+    const pageData = appState.allDocumentData[pageNum];
+    if (!pageData) return;
+
+    dom.get('formPreview').classList.remove('hidden');
+    dom.get('initialState').classList.add('hidden');
+    dom.get('currentPageDisplay_form').textContent = `(หน้า ${pageNum}/${appState.currentPdf ? appState.currentPdf.numPages : 1})`;
+
+    generatePerfectOverlayForm(pageData);
+    updateFieldList(pageData.fields);
+    
+    const hasFields = pageData.fields.length > 0;
+    ['editModeBtn', 'addFieldBtn', 'exportPdfBtn', 'exportHtmlBtn', 'saveBtn', 'exportTemplateBtn'].forEach(id => dom.get(id).disabled = false);
+    dom.get('exportTemplateBtn').disabled = !hasFields;
+  }
+
+  function generatePerfectOverlayForm(pageData) {
+    const container = dom.formContainer;
+    const aspectRatio = pageData.imageHeight / pageData.imageWidth;
+    
+    container.style.width = '100%';
+    container.style.paddingBottom = (aspectRatio * 100) + '%';
+    container.style.backgroundImage = dom.get('showBackground').checked ? `url('${pageData.backgroundUrl}')` : 'none';
+    container.style.backgroundSize = 'contain';
+    container.style.backgroundRepeat = 'no-repeat';
+    container.style.backgroundPosition = 'center top';
+    container.innerHTML = '';
+    
+    // Add or remove show-background class for better CSS targeting
+    container.classList.toggle('show-background', dom.get('showBackground').checked);
+
+    const form = document.createElement('form');
+    form.style.cssText = 'position: absolute; top: 0; left: 0; width: 100%; height: 100%;';
+    form.className = appState.isEditMode ? 'edit-mode' : '';
+    
+    pageData.fields.forEach(field => {
+        const fieldWrapper = createFormField(field);
+        form.appendChild(fieldWrapper);
+    });
+    container.appendChild(form);
+  }
+
+  function createFormField(field) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'form-field';
+    wrapper.id = field.id;
+    wrapper.dataset.fieldId = field.id;
+    wrapper.style.left = `${field.position.x}%`;
+    wrapper.style.top = `${field.position.y}%`;
+    wrapper.style.width = `${field.size.width}%`;
+    wrapper.style.height = `${field.size.height}%`;
+
+    const input = document.createElement('input');
+    input.type = field.type;
+    input.name = field.fieldName;
+    input.placeholder = field.fieldName;
+    input.value = field.value || '';
+    input.style.cssText = 'width: 100%; height: 100%; background: transparent; border: none; outline: none;';
+    input.addEventListener('input', (e) => {
+        field.value = e.target.value;
+    });
+    
+    wrapper.appendChild(input);
+
+    // Add delete and resize handles for edit mode
+    const deleteBtn = document.createElement('button');
+    deleteBtn.innerHTML = '&times;';
+    deleteBtn.className = 'delete-btn';
+    deleteBtn.type = 'button';
+    deleteBtn.title = 'Delete Field';
+    deleteBtn.onclick = (e) => {
+        e.stopPropagation();
+        deleteField(field.id);
+    };
+    wrapper.appendChild(deleteBtn);
+
+    const resizer = document.createElement('div');
+    resizer.className = 'resizer';
+    wrapper.appendChild(resizer);
+
+    // Add event listeners
+    wrapper.addEventListener('click', () => highlightField(field.id));
+    makeFieldDraggableAndResizable(wrapper, field);
+
+    return wrapper;
+  }
+
+  function updateFieldList(fields) {
+    const fieldListContainer = dom.get('fieldList');
+    const detectedFields = dom.get('detectedFields');
+    
+    detectedFields.innerHTML = '';
+    dom.get('fieldCount').textContent = fields.length;
+
+    if (fields.length > 0) {
+        fieldListContainer.classList.remove('hidden');
+        fields.sort((a, b) => a.fieldName.localeCompare(b.fieldName)).forEach(field => {
+            const fieldItem = document.createElement('div');
+            fieldItem.className = 'flex items-center justify-between p-2 bg-white dark:bg-gray-700 rounded border text-xs cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600';
+            fieldItem.dataset.fieldId = field.id;
+            fieldItem.innerHTML = `
+                <div class="flex-1 min-w-0">
+                    <input type="text" value="${field.fieldName}" class="font-medium truncate bg-transparent w-full" onchange="changeFieldProperty('${field.id}', 'fieldName', this.value)">
+                    <div class="text-gray-500 dark:text-gray-400">Page ${field.page}</div>
+                </div>
+                <input type="text" value="${field.type}" class="text-xs px-2 py-1 border rounded ml-2 w-20 bg-white dark:bg-gray-800" onchange="changeFieldProperty('${field.id}', 'type', this.value)">
+            `;
+            fieldItem.addEventListener('click', () => highlightField(field.id));
+            detectedFields.appendChild(fieldItem);
+        });
+    } else {
+        fieldListContainer.classList.add('hidden');
+    }
+  }
+    
+  function changeFieldProperty(fieldId, prop, value) {
+    for (const pageNum in appState.allDocumentData) {
+        const field = appState.allDocumentData[pageNum].fields.find(f => f.id === fieldId);
+        if (field) {
+            field[prop] = value;
+            const inputEl = dom.get(fieldId)?.querySelector('input');
+            if (inputEl) {
+                if (prop === 'type') inputEl.type = value;
+                if (prop === 'fieldName') inputEl.name = value;
             }
+            break;
         }
+    }
+  }
 
-        function checkGameEnd() {
-            const head = snake[0];
-            
-            if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount) {
-                resetGame();
-            }
-            
-            for (let i = 4; i < snake.length; i++) {
-                if (head.x === snake[i].x && head.y === snake[i].y) {
-                    resetGame();
+  function highlightField(fieldId) {
+    dom.queryAll('.form-field, .flex.items-center.justify-between').forEach(el => {
+        el.classList.remove('highlighted', 'bg-primary/20');
+    });
+
+    const fieldEl = dom.get(fieldId);
+    const listItemEl = dom.query(`.flex.items-center.justify-between[data-field-id="${fieldId}"]`);
+
+    if (fieldEl) {
+        fieldEl.classList.add('highlighted');
+        fieldEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    if (listItemEl) {
+        listItemEl.classList.add('highlighted', 'bg-primary/20');
+        listItemEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }
+
+  // --- Field Manipulation ---
+  function addField() {
+    const pageData = appState.allDocumentData[appState.currentPageNum];
+    if (!pageData) return;
+
+    const newField = {
+        id: `field_${appState.nextFieldId++}`,
+        fieldName: `new_field_${appState.nextFieldId}`,
+        type: 'text',
+        page: appState.currentPageNum,
+        position: { x: 5, y: 5 },
+        size: { width: 30, height: 5 },
+        value: ''
+    };
+
+    pageData.fields.push(newField);
+    showResultsForPage(appState.currentPageNum);
+    setTimeout(() => highlightField(newField.id), 100); // Highlight after render
+    showToast('เพิ่มฟิลด์ใหม่แล้ว', 'success');
+  }
+
+  function deleteField(fieldId) {
+    const pageData = appState.allDocumentData[appState.currentPageNum];
+    pageData.fields = pageData.fields.filter(f => f.id !== fieldId);
+    showResultsForPage(appState.currentPageNum);
+    showToast('ลบฟิลด์แล้ว', 'info');
+  }
+
+  // --- UI Controls (Edit, Background, etc.) ---
+  function toggleEditMode() {
+    appState.isEditMode = !appState.isEditMode;
+    const btn = dom.get('editModeBtn');
+    btn.textContent = appState.isEditMode ? 'ปิดโหมดแก้ไข' : 'เปิดโหมดแก้ไข';
+    btn.classList.toggle('bg-red-600', appState.isEditMode);
+    btn.classList.toggle('hover:bg-red-700', appState.isEditMode);
+    btn.classList.toggle('bg-green-600', !appState.isEditMode);
+    btn.classList.toggle('hover:bg-green-700', !appState.isEditMode);
+
+    dom.formContainer.querySelector('form')?.classList.toggle('edit-mode', appState.isEditMode);
+  }
+
+  function makeFieldDraggableAndResizable(element, fieldData) {
+    const resizer = element.querySelector('.resizer');
+    let isDragging = false, isResizing = false;
+    let startX, startY, startLeft, startTop, startWidth, startHeight;
+
+    const onMouseDown = (e) => {
+        if (!appState.isEditMode) return;
+        e.preventDefault();
+        
+        startX = e.clientX;
+        startY = e.clientY;
+
+        if (e.target === resizer) {
+            isResizing = true;
+            startWidth = parseFloat(element.style.width);
+            startHeight = parseFloat(element.style.height);
+        } else {
+            isDragging = true;
+            startLeft = parseFloat(element.style.left);
+            startTop = parseFloat(element.style.top);
+        }
+        
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
+    };
+
+    const onMouseMove = (e) => {
+        if (!isDragging && !isResizing) return;
+        const rect = dom.formContainer.getBoundingClientRect();
+        const deltaX = ((e.clientX - startX) / rect.width) * 100;
+        const deltaY = ((e.clientY - startY) / rect.height) * 100;
+
+        if (isDragging) {
+            element.style.left = `${startLeft + deltaX}%`;
+            element.style.top = `${startTop + deltaY}%`;
+        } else if (isResizing) {
+            element.style.width = `${Math.max(5, startWidth + deltaX)}%`;
+            element.style.height = `${Math.max(2, startHeight + deltaY)}%`;
+        }
+    };
+
+    const onMouseUp = () => {
+        if (isDragging) {
+            fieldData.position.x = parseFloat(element.style.left);
+            fieldData.position.y = parseFloat(element.style.top);
+        }
+        if (isResizing) {
+            fieldData.size.width = parseFloat(element.style.width);
+            fieldData.size.height = parseFloat(element.style.height);
+        }
+        isDragging = false;
+        isResizing = false;
+        document.removeEventListener('mousemove', onMouseMove);
+        document.removeEventListener('mouseup', onMouseUp);
+    };
+
+    element.addEventListener('mousedown', onMouseDown);
+  }
+
+  // --- Export & Save Functions ---
+  async function exportFilledPDF() {
+    if (!appState.selectedFileBuffer) {
+        showToast("กรุณาอัปโหลดไฟล์ PDF ก่อน", "error");
+        return;
+    }
+    
+    await toggleButtonLoading('exportPdfBtn', true);
+    dom.get('processingStatus').classList.remove('hidden');
+    dom.get('statusMessage').textContent = 'กำลังสร้างไฟล์ PDF ที่กรอกแล้ว...';
+
+    try {
+        const { PDFDocument, rgb } = PDFLib;
+        const pdfDoc = await PDFDocument.load(appState.selectedFileBuffer);
+        const thaiFontBytes = await loadThaiFont();
+        if (!thaiFontBytes) throw new Error("Font not loaded");
+        const customFont = await pdfDoc.embedFont(thaiFontBytes);
+
+        for (const pageNumStr in appState.allDocumentData) {
+            const pageNum = parseInt(pageNumStr);
+            const pageData = appState.allDocumentData[pageNum];
+            const page = pdfDoc.getPages()[pageNum - 1];
+            const { width, height } = page.getSize();
+
+            for (const field of pageData.fields) {
+                const value = field.value || '';
+                if (value) {
+                    const x = (field.position.x / 100) * width;
+                    const y = height - ((field.position.y / 100) * height);
+                    const fieldHeight = (field.size.height / 100) * height;
+                    
+                    page.drawText(value, {
+                        x: x + 2,
+                        y: y - fieldHeight + (fieldHeight * 0.2), // Better vertical alignment
+                        size: fieldHeight * 0.7,
+                        font: customFont,
+                        color: rgb(0, 0, 0),
+                    });
                 }
             }
         }
 
-        function resetGame() {
-            snake = [{ x: 10, y: 10 }];
-            food = { x: 15, y: 15 };
-            dx = 0; dy = 0;
-            score = 0;
-            scoreElement.textContent = score;
-        }
+        const pdfBytes = await pdfDoc.save();
+        download(pdfBytes, `filled-${appState.selectedFile.name}`, 'application/pdf');
+        showToast('สร้าง PDF สำเร็จ!', 'success');
 
-        // Keyboard controls
-        document.addEventListener('keydown', (e) => {
-            switch(e.key) {
-                case 'ArrowUp': changeDirection('up'); break;
-                case 'ArrowDown': changeDirection('down'); break;
-                case 'ArrowLeft': changeDirection('left'); break;
-                case 'ArrowRight': changeDirection('right'); break;
-            }
-        });
-
-        // Touch controls
-        let touchStartX, touchStartY;
-        canvas.addEventListener('touchstart', (e) => {
-            touchStartX = e.touches[0].clientX;
-            touchStartY = e.touches[0].clientY;
-        });
-
-        canvas.addEventListener('touchend', (e) => {
-            if (!touchStartX || !touchStartY) return;
-            
-            const touchEndX = e.changedTouches[0].clientX;
-            const touchEndY = e.changedTouches[0].clientY;
-            
-            const diffX = touchStartX - touchEndX;
-            const diffY = touchStartY - touchEndY;
-            
-            if (Math.abs(diffX) > Math.abs(diffY)) {
-                changeDirection(diffX > 0 ? 'left' : 'right');
-            } else {
-                changeDirection(diffY > 0 ? 'up' : 'down');
-            }
-        });
-
-        // Start game
-        setInterval(drawGame, 200);
-    </script>
-</body>
-</html>`;
+    } catch (error) {
+        console.error("Error creating filled PDF:", error);
+        showToast("เกิดข้อผิดพลาดในการสร้าง PDF: " + error.message, 'error');
+    } finally {
+        dom.get('processingStatus').classList.add('hidden');
+        await toggleButtonLoading('exportPdfBtn', false);
     }
+  }
 
-    function generateGenericCode(request) {
-      return `// Generated Code Template
-// Request: ${request}
-
-<!DOCTYPE html>
-<html lang="th">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generated App</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            font-family: system-ui, -apple-system, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .app { 
-            background: white;
-            padding: 2rem;
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            max-width: 500px;
-            width: 90%;
-        }
-        .title { 
-            font-size: 2rem;
-            color: #333;
-            margin-bottom: 1rem;
-            text-align: center;
-        }
-        .content { 
-            color: #666;
-            line-height: 1.6;
-            text-align: center;
-        }
-        .btn {
-            background: #667eea;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
-            font-size: 1rem;
-            cursor: pointer;
-            margin-top: 1rem;
-            transition: all 0.3s ease;
-        }
-        .btn:hover { 
-            background: #5a6fd8;
-            transform: translateY(-2px);
-        }
-    </style>
-</head>
-<body>
-    <div class="app">
-        <h1 class="title">🚀 Generated App</h1>
-        <div class="content">
-            <p>This is a template generated based on your request:</p>
-            <p><strong>"${request}"</strong></p>
-            <p>You can customize this code further to meet your specific needs.</p>
-            <button class="btn" onclick="alert('Hello from generated code!')">
-                Click Me!
-            </button>
-        </div>
-    </div>
+  function exportHTML() {
+    const allFields = Object.values(appState.allDocumentData).flatMap(p => p.fields);
+    if (allFields.length === 0) return;
     
-    <script>
-        console.log('Generated app loaded successfully!');
-        console.log('Request was: ${request}');
-        
-        // Add your custom JavaScript here
-        document.querySelector('.btn').addEventListener('click', () => {
-            console.log('Button clicked!');
-        });
-    </script>
-</body>
-</html>`;
-    }
-
-    // Send message handler
-    async function handleSend() {
-      const text = userInput.value.trim();
-      if (!text) return;
-
-      // Add user message
-      addMessage('user', text);
-      userInput.value = '';
-      userInput.style.height = 'auto';
-
-      // Get AI response
-      try {
-        const response = await simulateAIResponse(text);
-        
-        // Add bot message
-        addMessage('bot', response.message);
-        
-        // Add code if available
-        if (response.code) {
-          setTimeout(() => {
-            addMessage('bot', response.code, true);
-          }, 500);
-        }
-
-        // Store message in history
-        messages.push(
-          { role: 'user', content: text },
-          { role: 'assistant', content: response.message + (response.code ? '\n\n' + response.code : '') }
-        );
-
-      } catch (error) {
-        addMessage('bot', 'ขออภัยครับ เกิดข้อผิดพลาด: ' + error.message);
-      }
-    }
-
-    // Event listeners
-    sendBtn.addEventListener('click', handleSend);
-    userInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        handleSend();
-      }
+    const pageData = appState.allDocumentData[appState.currentPageNum];
+    const { imageWidth, imageHeight, backgroundUrl } = pageData;
+    
+    let formHTML = `<div style="position: relative; width: 100%; max-width: ${imageWidth}px; margin: auto; padding-bottom: ${imageHeight/imageWidth*100}%; background-image: url('${backgroundUrl}'); background-size: cover;">`;
+    
+    pageData.fields.forEach(field => {
+        formHTML += `<input type="${field.type}" value="${field.value || ''}" style="position: absolute; left: ${field.position.x}%; top: ${field.position.y}%; width: ${field.size.width}%; height: ${field.size.height}%; box-sizing: border-box;">`;
     });
+    formHTML += `</div>`;
+    
+    const htmlContent = `<!DOCTYPE html><html><head><title>Form</title></head><body>${formHTML}</body></html>`;
+    download(htmlContent, 'form-template.html', 'text/html');
+  }
 
-    // Initialize
-    optimizeParameters();
-    generateCodeBtn.click(); // Generate initial code example
+  function saveData() {
+    const dataToSave = {};
+    Object.values(appState.allDocumentData).flatMap(p => p.fields).forEach(field => {
+        dataToSave[field.fieldName] = field.value || '';
+    });
+    download(JSON.stringify(dataToSave, null, 2), 'form-data.json', 'application/json');
+  }
+
+  // --- Template Management ---
+  function manageTemplates(action) {
+    if (action === 'export') {
+        const allFields = Object.values(appState.allDocumentData).flatMap(p => p.fields);
+        if (allFields.length === 0) {
+            showToast("ไม่มีฟิลด์ให้ Export", "info");
+            return;
+        }
+        download(JSON.stringify(allFields, null, 2), 'document-template.json', 'application/json');
+    } else if (action === 'import') {
+        dom.get('templateFileInput').click();
+    }
+  }
+
+  async function handleTemplateFile(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+        try {
+            const fields = JSON.parse(e.target.result);
+            if (!Array.isArray(fields)) throw new Error("Invalid template format.");
+            
+            // Clear existing fields
+            Object.values(appState.allDocumentData).forEach(pageData => pageData.fields = []);
+
+            // Ensure all required pages are loaded before applying template
+            const requiredPages = [...new Set(fields.map(f => f.page || 1))];
+            for (const pageNum of requiredPages) {
+                if (!appState.allDocumentData[pageNum]) {
+                    await goToPage(pageNum); // This will load the page data
+                }
+            }
+
+            // Apply template fields
+            fields.forEach(field => {
+                const pageNum = field.page || 1;
+                if (appState.allDocumentData[pageNum]) {
+                    field.id = `field_${appState.nextFieldId++}`; // Assign new unique ID
+                    appState.allDocumentData[pageNum].fields.push(field);
+                }
+            });
+            
+            const firstPageWithFields = requiredPages[0] || 1;
+            await goToPage(parseInt(firstPageWithFields));
+            showToast(`นำเข้า Template สำเร็จ! พบ ${fields.length} ฟิลด์`, 'success');
+
+        } catch (error) {
+            console.error("Error importing template:", error);
+            showToast("เกิดข้อผิดพลาดในการนำเข้า Template: " + error.message, 'error');
+        }
+    };
+    reader.readAsText(file);
+  }
+
+  // --- Event Listeners ---
+  function setupEventListeners() {
+    dom.fileInput.addEventListener('change', handleFileSelect);
+    dom.uploadArea.addEventListener('click', () => dom.fileInput.click());
+    dom.get('ocrBtn').addEventListener('click', runOCRForCurrentPage);
+    dom.get('importTemplateBtn').addEventListener('click', () => manageTemplates('import'));
+    dom.get('exportTemplateBtn').addEventListener('click', () => manageTemplates('export'));
+    dom.get('templateFileInput').addEventListener('change', handleTemplateFile);
+    dom.get('editModeBtn').addEventListener('click', toggleEditMode);
+    dom.get('addFieldBtn').addEventListener('click', addField);
+    dom.get('exportPdfBtn').addEventListener('click', exportFilledPDF);
+    dom.get('exportHtmlBtn').addEventListener('click', exportHTML);
+    dom.get('saveBtn').addEventListener('click', saveData);
+    dom.get('showBackground').addEventListener('change', () => {
+        const pageData = appState.allDocumentData[appState.currentPageNum];
+        if (pageData) {
+            const container = dom.formContainer;
+            const showBg = dom.get('showBackground').checked;
+            container.style.backgroundImage = showBg ? `url('${pageData.backgroundUrl}')` : 'none';
+            container.classList.toggle('show-background', showBg);
+        }
+    });
+    dom.get('prevPageBtn').addEventListener('click', async () => await goToPage(appState.currentPageNum - 1));
+    dom.get('nextPageBtn').addEventListener('click', async () => await goToPage(appState.currentPageNum + 1));
+    dom.get('pageNumberInput').addEventListener('change', (e) => {
+        const newPage = parseInt(e.target.value, 10);
+        if (!isNaN(newPage)) goToPage(newPage);
+    });
+  }
+
+  // --- App Initialization ---
+  document.addEventListener('DOMContentLoaded', () => {
+    setupEventListeners();
+    loadThaiFont(); // Pre-load font on startup
+  });
+
   </script>
 </body>
 </html>
+```
