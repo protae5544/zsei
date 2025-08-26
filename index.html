@@ -2,8 +2,8 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>AI Code Generator - Responsive Chatbot</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+  <title>Smart Chat Optimizer - AI Code Generator</title>
   <style>
     :root { 
       --bg: #0b1020; 
@@ -14,267 +14,246 @@
       --bot: #1f9a3a; 
       --code: #0e1b2a; 
       --accent: #4ade80;
-      --border: #2d2d4a;
+      --danger: #ef4444;
+      --warning: #f59e0b;
     }
     
-    * { 
-      box-sizing: border-box; 
-      margin: 0; 
-      padding: 0; 
-    }
+    * { box-sizing: border-box; }
+    html, body { height: 100vh; margin: 0; overflow: hidden; }
     
-    html, body { 
-      height: 100%; 
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-      background: var(--bg); 
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: linear-gradient(135deg, var(--bg) 0%, #1a1a2e 100%);
       color: var(--text); 
-      line-height: 1.6;
-    }
-    
-    .container {
-      display: flex;
+      display: flex; 
       flex-direction: column;
-      height: 100vh;
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 16px;
-      gap: 16px;
+      touch-action: manipulation;
     }
-    
+
     .header {
-      background: linear-gradient(135deg, var(--card), #1a2332);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 20px;
-      text-align: center;
-    }
-    
-    .header h1 {
-      font-size: 2rem;
-      font-weight: 700;
-      background: linear-gradient(135deg, var(--accent), #06b6d4);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      margin-bottom: 8px;
-    }
-    
-    .header p {
-      color: var(--muted);
-      font-size: 1rem;
-    }
-    
-    .main-content {
-      display: grid;
-      grid-template-columns: 1fr 400px;
-      gap: 16px;
-      flex: 1;
-      min-height: 0;
-    }
-    
-    @media (max-width: 1024px) {
-      .main-content {
-        grid-template-columns: 1fr;
-        grid-template-rows: 1fr auto;
-      }
-      .controls {
-        order: -1;
-        max-height: 300px;
-        overflow-y: auto;
-      }
-    }
-    
-    @media (max-width: 768px) {
-      .container {
-        padding: 8px;
-        gap: 8px;
-      }
-      .header {
-        padding: 16px;
-      }
-      .header h1 {
-        font-size: 1.5rem;
-      }
-    }
-    
-    .chat-panel {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      min-height: 500px;
-    }
-    
-    .chat-header {
+      background: rgba(17, 26, 43, 0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid #2d2d4a;
+      padding: 12px 16px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 16px;
-      padding-bottom: 12px;
-      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
     }
-    
-    .chat-title {
-      font-size: 1.25rem;
-      font-weight: 600;
+
+    .logo {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--accent);
     }
-    
-    .status-indicator {
+
+    .status {
       display: flex;
-      align-items: center;
       gap: 8px;
-      font-size: 0.875rem;
-      color: var(--muted);
+      align-items: center;
+      font-size: 0.85rem;
     }
-    
+
     .status-dot {
       width: 8px;
       height: 8px;
-      background: var(--accent);
       border-radius: 50%;
+      background: var(--accent);
       animation: pulse 2s infinite;
     }
-    
+
     @keyframes pulse {
       0%, 100% { opacity: 1; }
       50% { opacity: 0.5; }
     }
-    
-    .chat-messages {
+
+    .main-container {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+
+    .chat-section {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .controls-section {
+      width: 320px;
+      background: rgba(17, 26, 43, 0.8);
+      border-left: 1px solid #2d2d4a;
+      overflow-y: auto;
+      flex-shrink: 0;
+    }
+
+    @media (max-width: 1024px) {
+      .controls-section {
+        position: fixed;
+        top: 0;
+        right: -320px;
+        height: 100vh;
+        z-index: 1000;
+        transition: right 0.3s ease;
+        box-shadow: -4px 0 20px rgba(0,0,0,0.3);
+      }
+      
+      .controls-section.open {
+        right: 0;
+      }
+      
+      .overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 999;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+      }
+      
+      .overlay.show {
+        opacity: 1;
+        visibility: visible;
+      }
+    }
+
+    .toggle-btn {
+      display: none;
+      background: var(--accent);
+      color: #062f1c;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+
+    @media (max-width: 1024px) {
+      .toggle-btn { display: block; }
+    }
+
+    #chat {
       flex: 1;
       overflow-y: auto;
       padding: 16px;
-      background: #0a1222;
-      border: 1px solid #2b2b3a;
+      background: rgba(10, 18, 34, 0.6);
+      margin: 8px;
       border-radius: 12px;
-      margin-bottom: 16px;
+      border: 1px solid #2b2b3a;
       scroll-behavior: smooth;
+      -webkit-overflow-scrolling: touch;
     }
-    
-    .message {
-      display: flex;
-      margin-bottom: 16px;
-      animation: fadeInUp 0.3s ease-out;
-    }
-    
-    @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translateY(10px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-    
-    .message.user {
-      justify-content: flex-end;
-    }
-    
-    .message-content {
-      max-width: 80%;
+
+    .bubble {
       padding: 12px 16px;
       border-radius: 16px;
+      margin: 8px 0;
+      max-width: 85%;
+      word-wrap: break-word;
       position: relative;
+      animation: slideIn 0.3s ease;
     }
-    
-    .message.user .message-content {
-      background: linear-gradient(135deg, var(--user), #3b82f6);
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .user {
+      background: linear-gradient(135deg, #2b5cff 0%, #1d47d1 100%);
       color: white;
+      margin-left: auto;
       border-bottom-right-radius: 4px;
     }
-    
-    .message.bot .message-content {
-      background: linear-gradient(135deg, #1e293b, #334155);
-      border: 1px solid var(--border);
+
+    .bot {
+      background: linear-gradient(135deg, #1f9a3a 0%, #16803d 100%);
+      color: white;
+      margin-right: auto;
       border-bottom-left-radius: 4px;
     }
-    
-    .message-content pre {
+
+    .code-bubble {
       background: var(--code);
-      padding: 12px;
-      border-radius: 8px;
-      overflow-x: auto;
-      margin: 8px 0;
-      font-family: 'Fira Code', 'Monaco', 'Consolas', monospace;
-      font-size: 0.875rem;
-      border: 1px solid #374151;
+      color: #d6e0f5;
+      font-family: 'Courier New', monospace;
+      white-space: pre-wrap;
+      border: 1px solid #334;
+      max-width: 95%;
     }
-    
-    .input-area {
+
+    .input-container {
+      padding: 12px 16px;
+      background: rgba(17, 26, 43, 0.95);
+      border-top: 1px solid #2d2d4a;
       display: flex;
-      gap: 12px;
+      gap: 8px;
       align-items: flex-end;
     }
-    
-    .input-wrapper {
+
+    #userInput {
       flex: 1;
-      position: relative;
-    }
-    
-    .chat-input {
-      width: 100%;
       padding: 12px 16px;
-      border: 2px solid var(--border);
       border-radius: 24px;
-      background: var(--bg);
+      border: 2px solid #334;
+      background: rgba(255, 255, 255, 0.1);
       color: var(--text);
-      font-size: 1rem;
-      outline: none;
-      transition: all 0.3s ease;
+      font-size: 16px;
       resize: none;
+      min-height: 44px;
       max-height: 120px;
-      min-height: 48px;
+      transition: border-color 0.2s;
     }
-    
-    .chat-input:focus {
+
+    #userInput:focus {
+      outline: none;
       border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.1);
     }
-    
-    .send-button {
-      padding: 12px 24px;
-      background: linear-gradient(135deg, var(--accent), #22c55e);
-      color: #065f46;
+
+    #userInput::placeholder {
+      color: var(--muted);
+    }
+
+    .send-btn {
+      background: var(--accent);
+      color: #062f1c;
       border: none;
-      border-radius: 24px;
-      font-weight: 600;
+      border-radius: 50%;
+      width: 44px;
+      height: 44px;
       cursor: pointer;
-      transition: all 0.3s ease;
-      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: bold;
+      transition: all 0.2s;
+      touch-action: manipulation;
     }
-    
-    .send-button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 25px rgba(74, 222, 128, 0.3);
+
+    .send-btn:hover {
+      background: #22c55e;
+      transform: scale(1.05);
     }
-    
-    .send-button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      transform: none;
+
+    .send-btn:active {
+      transform: scale(0.95);
     }
-    
-    .controls {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 20px;
-      overflow-y: auto;
+
+    .control-group {
+      padding: 16px;
+      border-bottom: 1px solid #2d2d4a;
     }
-    
-    .control-section {
-      margin-bottom: 24px;
-    }
-    
-    .control-section:last-child {
-      margin-bottom: 0;
-    }
-    
-    .section-title {
-      font-size: 1rem;
+
+    .control-title {
+      font-size: 0.9rem;
       font-weight: 600;
       color: var(--accent);
       margin-bottom: 12px;
@@ -282,494 +261,720 @@
       align-items: center;
       gap: 8px;
     }
-    
-    .form-group {
-      margin-bottom: 16px;
+
+    .mode-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 6px;
+      margin-bottom: 12px;
     }
-    
-    .form-label {
-      display: block;
-      font-size: 0.875rem;
-      font-weight: 500;
-      color: var(--muted);
-      margin-bottom: 6px;
-    }
-    
-    .form-input {
-      width: 100%;
-      padding: 10px 12px;
-      border: 2px solid var(--border);
-      border-radius: 8px;
-      background: var(--bg);
+
+    .mode-btn {
+      padding: 8px 4px;
+      border: 1px solid #445;
+      background: rgba(255, 255, 255, 0.05);
       color: var(--text);
-      font-size: 0.875rem;
-      transition: all 0.3s ease;
-    }
-    
-    .form-input:focus {
-      border-color: var(--accent);
-      outline: none;
-      box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.1);
-    }
-    
-    .button-group {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-    
-    .toggle-button {
-      padding: 8px 16px;
-      border: 2px solid var(--border);
-      border-radius: 20px;
-      background: transparent;
-      color: var(--muted);
-      font-size: 0.875rem;
+      border-radius: 6px;
+      font-size: 0.8rem;
       font-weight: 500;
       cursor: pointer;
-      transition: all 0.3s ease;
+      transition: all 0.2s;
+      text-align: center;
     }
-    
-    .toggle-button.active {
+
+    .mode-btn.active {
       background: var(--accent);
-      color: #065f46;
+      color: #062f1c;
       border-color: var(--accent);
     }
-    
-    .toggle-button:hover {
-      border-color: var(--accent);
-      color: var(--accent);
-    }
-    
-    .range-group {
-      display: flex;
-      align-items: center;
+
+    .param-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
       gap: 12px;
+      margin-top: 12px;
     }
-    
+
+    .param-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .param-label {
+      font-size: 0.8rem;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    .param-input {
+      padding: 6px 8px;
+      border-radius: 4px;
+      border: 1px solid #445;
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text);
+      font-size: 0.85rem;
+    }
+
     .range-input {
-      flex: 1;
       -webkit-appearance: none;
+      width: 100%;
       height: 4px;
+      background: #445;
       border-radius: 2px;
-      background: var(--border);
       outline: none;
     }
-    
+
     .range-input::-webkit-slider-thumb {
       -webkit-appearance: none;
       width: 16px;
       height: 16px;
-      border-radius: 50%;
       background: var(--accent);
+      border-radius: 50%;
       cursor: pointer;
     }
-    
-    .range-value {
-      font-size: 0.875rem;
+
+    .param-value {
+      font-size: 0.75rem;
       color: var(--accent);
-      font-weight: 500;
-      min-width: 40px;
-      text-align: right;
+      text-align: center;
+      font-weight: 600;
     }
-    
+
+    .generate-btn {
+      width: 100%;
+      padding: 10px;
+      background: var(--accent);
+      color: #062f1c;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 12px;
+      transition: all 0.2s;
+    }
+
+    .generate-btn:hover {
+      background: #22c55e;
+    }
+
     .code-output {
       background: var(--code);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 16px;
-      font-family: 'Fira Code', 'Monaco', 'Consolas', monospace;
+      color: #d6e0f5;
+      padding: 12px;
+      border-radius: 6px;
+      font-family: 'Courier New', monospace;
       font-size: 0.75rem;
       white-space: pre-wrap;
-      overflow-x: auto;
       max-height: 200px;
-      color: #94a3b8;
-      line-height: 1.5;
+      overflow-y: auto;
+      margin-top: 8px;
+      border: 1px solid #445;
     }
-    
-    .tips {
-      background: linear-gradient(135deg, #1e293b, #334155);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 16px;
-      margin-top: 16px;
-    }
-    
-    .tips-title {
-      font-size: 0.875rem;
-      font-weight: 600;
-      color: var(--accent);
-      margin-bottom: 8px;
-    }
-    
-    .tip-item {
-      font-size: 0.75rem;
+
+    .typing-indicator {
+      display: none;
+      padding: 12px 16px;
       color: var(--muted);
-      margin-bottom: 4px;
+      font-style: italic;
+      font-size: 0.9rem;
     }
-    
-    .loading {
-      display: inline-block;
-      width: 16px;
-      height: 16px;
-      border: 2px solid var(--border);
-      border-radius: 50%;
-      border-top-color: var(--accent);
-      animation: spin 1s ease-in-out infinite;
+
+    .typing-indicator.show {
+      display: block;
+      animation: fadeIn 0.3s ease;
     }
-    
-    @keyframes spin {
-      to { transform: rotate(360deg); }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
-    
-    @media (max-width: 480px) {
-      .input-area {
-        flex-direction: column;
-        gap: 8px;
-      }
-      
-      .send-button {
-        align-self: stretch;
-      }
-      
-      .button-group {
-        flex-direction: column;
-      }
-      
-      .range-group {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 6px;
-      }
-      
-      .range-value {
-        text-align: left;
-      }
+
+    .quick-actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+
+    .quick-btn {
+      padding: 6px 12px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid #445;
+      border-radius: 16px;
+      font-size: 0.8rem;
+      color: var(--text);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .quick-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    /* Touch-friendly improvements */
+    @media (max-width: 768px) {
+      .bubble { max-width: 95%; }
+      .param-grid { grid-template-columns: 1fr; }
+      #userInput { font-size: 16px; } /* Prevents zoom on iOS */
+    }
+
+    /* Scrollbar styling */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--accent);
+      border-radius: 3px;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <header class="header">
-      <h1>🤖 AI Code Generator</h1>
-      <p>สร้างโค้ดเว็บไซต์ด้วย AI - รองรับ HTML, CSS, JavaScript และ React</p>
-    </header>
-
-    <div class="main-content">
-      <div class="chat-panel">
-        <div class="chat-header">
-          <div class="chat-title">💬 Chat & Code</div>
-          <div class="status-indicator">
-            <div class="status-dot"></div>
-            <span>พร้อมใช้งาน</span>
-          </div>
-        </div>
-
-        <div class="chat-messages" id="chatMessages">
-          <div class="message bot">
-            <div class="message-content">
-              <strong>🎯 ยินดีต้อนรับสู่ AI Code Generator!</strong><br><br>
-              ผมสามารถช่วยคุณสร้างโค้ดได้หลากหลายประเภท:<br>
-              • 🌐 เว็บไซต์ HTML/CSS/JS<br>
-              • ⚛️ React Components<br>
-              • 📱 Responsive Design<br>
-              • 🎨 Modern UI/UX<br>
-              • 🔧 Interactive Features<br><br>
-              <em>ลองถามผม "สร้างเกมงูกินหาง" หรือ "ทำเว็บไซต์โปรไฟล์" ดูสิ!</em>
-            </div>
-          </div>
-        </div>
-
-        <div class="input-area">
-          <div class="input-wrapper">
-            <textarea 
-              id="userInput" 
-              class="chat-input" 
-              placeholder="พิมพ์คำสั่งที่ต้องการ เช่น 'สร้างเกมโปงพาง' หรือ 'ทำแอพแปลงสกุลเงิน'"
-              rows="1"
-            ></textarea>
-          </div>
-          <button id="sendBtn" class="send-button">
-            <span id="sendText">ส่ง</span>
-            <div id="loadingSpinner" class="loading" style="display: none;"></div>
-          </button>
-        </div>
-      </div>
-
-      <div class="controls">
-        <div class="control-section">
-          <div class="section-title">🎯 โหมดการทำงาน</div>
-          <div class="button-group">
-            <button class="toggle-button active" data-mode="web">🌐 Web App</button>
-            <button class="toggle-button" data-mode="react">⚛️ React</button>
-            <button class="toggle-button" data-mode="game">🎮 Game</button>
-            <button class="toggle-button" data-mode="ui">🎨 UI/UX</button>
-          </div>
-        </div>
-
-        <div class="control-section">
-          <div class="section-title">⚙️ การตั้งค่า</div>
-          
-          <div class="form-group">
-            <label class="form-label">🎨 ธีม</label>
-            <div class="button-group">
-              <button class="toggle-button active" data-theme="dark">🌙 Dark</button>
-              <button class="toggle-button" data-theme="light">☀️ Light</button>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">📐 ความซับซ้อน</label>
-            <div class="range-group">
-              <input type="range" class="range-input" id="complexityRange" min="1" max="5" value="3">
-              <span class="range-value" id="complexityValue">3</span>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">📱 Responsive</label>
-            <div class="button-group">
-              <button class="toggle-button active" data-responsive="true">✅ เปิด</button>
-              <button class="toggle-button" data-responsive="false">❌ ปิด</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="control-section">
-          <div class="section-title">📋 ข้อมูลโค้ด</div>
-          <div class="code-output" id="codeStats">
-            🔧 สถิติโค้ด:<br>
-            📄 ไฟล์: 0<br>
-            📏 บรรทัด: 0<br>
-            🏷️ ประเภท: -<br>
-            ⚡ เวอร์ชัน: 1.0
-          </div>
-        </div>
-
-        <div class="tips">
-          <div class="tips-title">💡 เคล็ดลับ</div>
-          <div class="tip-item">• ระบุรายละเอียดให้ชัดเจน</div>
-          <div class="tip-item">• ใช้คำศัพท์เทคนิคได้</div>
-          <div class="tip-item">• สามารถขอแก้ไขโค้ดได้</div>
-          <div class="tip-item">• รองรับภาษาไทยและอังกฤษ</div>
-        </div>
-      </div>
+  <div class="overlay" id="overlay"></div>
+  
+  <header class="header">
+    <div class="logo">🤖 Smart Code Bot</div>
+    <div class="status">
+      <div class="status-dot"></div>
+      <span>พร้อมใช้งาน</span>
     </div>
+    <button class="toggle-btn" id="toggleControls">⚙️ ตั้งค่า</button>
+  </header>
+
+  <div class="main-container">
+    <section class="chat-section">
+      <div id="chat" role="log" aria-label="Chat messages">
+        <div class="bubble bot">
+          สวัสดีครับ! ผมคือ Smart Code Bot ที่สามารถสร้างโค้ดตามคำสั่งของคุณได้ 
+          พิมพ์สิ่งที่คุณต้องการให้ผมสร้าง เช่น "สร้างเว็บไซต์ To-Do List" หรือ "เขียน API สำหรับ user management"
+        </div>
+      </div>
+      
+      <div class="typing-indicator" id="typingIndicator">
+        🤖 กำลังคิดและสร้างโค้ด...
+      </div>
+
+      <div class="input-container">
+        <div class="quick-actions">
+          <button class="quick-btn" onclick="insertQuickCommand('สร้างเว็บไซต์ To-Do List แบบ responsive')">📝 To-Do App</button>
+          <button class="quick-btn" onclick="insertQuickCommand('เขียน API REST สำหรับ user management')">🔐 User API</button>
+          <button class="quick-btn" onclick="insertQuickCommand('สร้างเกม Snake ด้วย HTML Canvas')">🎮 เกม Snake</button>
+        </div>
+        <div style="display: flex; gap: 8px; align-items: flex-end; width: 100%;">
+          <textarea 
+            id="userInput" 
+            placeholder="พิมพ์คำสั่งสร้างโค้ด เช่น 'สร้างเว็บไซต์ portfolio' หรือ 'เขียน chatbot'"
+            rows="1"
+          ></textarea>
+          <button class="send-btn" id="sendBtn" aria-label="Send message">➤</button>
+        </div>
+      </div>
+    </section>
+
+    <aside class="controls-section" id="controlsSection">
+      <div class="control-group">
+        <div class="control-title">🎯 โหมดการทำงาน</div>
+        <div class="mode-buttons">
+          <button class="mode-btn active" data-mode="speed">⚡ เร็ว</button>
+          <button class="mode-btn" data-mode="quality">💎 คุณภาพ</button>
+          <button class="mode-btn" data-mode="balanced">⚖️ สมดุล</button>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <div class="control-title">🔧 การตั้งค่า API</div>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <input 
+            id="endpoint" 
+            type="url" 
+            placeholder="API Endpoint" 
+            class="param-input"
+            value="https://api.openai.com/v1/chat/completions"
+          />
+          <input 
+            id="apiKey" 
+            type="password" 
+            placeholder="API Key" 
+            class="param-input"
+          />
+        </div>
+      </div>
+
+      <div class="control-group">
+        <div class="control-title">⚙️ พารามิเตอร์</div>
+        <div class="param-grid">
+          <div class="param-item">
+            <label class="param-label">Model</label>
+            <select id="modelSelect" class="param-input">
+              <option value="gpt-4">GPT-4</option>
+              <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+              <option value="claude-3">Claude-3</option>
+            </select>
+          </div>
+
+          <div class="param-item">
+            <label class="param-label">Max Tokens</label>
+            <input id="maxTokens" type="number" min="100" max="4000" value="2000" class="param-input">
+          </div>
+
+          <div class="param-item">
+            <label class="param-label">Temperature</label>
+            <input id="temp" type="range" min="0" max="1" step="0.1" value="0.7" class="range-input">
+            <div class="param-value" id="tempVal">0.7</div>
+          </div>
+
+          <div class="param-item">
+            <label class="param-label">Top P</label>
+            <input id="topP" type="range" min="0" max="1" step="0.1" value="0.9" class="range-input">
+            <div class="param-value" id="topPVal">0.9</div>
+          </div>
+        </div>
+
+        <button class="generate-btn" id="generateCode">🚀 สร้างโค้ดตัวอย่าง</button>
+        <div class="code-output" id="codeOutput">// Code output will appear here</div>
+      </div>
+
+      <div class="control-group">
+        <div class="control-title">📊 สถิติ</div>
+        <div style="font-size: 0.8rem; color: var(--muted);">
+          <div>Messages: <span id="messageCount">0</span></div>
+          <div>Tokens used: <span id="tokenCount">~0</span></div>
+          <div>Mode: <span id="currentMode">เร็ว</span></div>
+        </div>
+      </div>
+    </aside>
   </div>
 
   <script>
-    // Global state
-    let currentMode = 'web';
-    let currentTheme = 'dark';
-    let isResponsive = true;
-    let complexity = 3;
-    let isLoading = false;
+    // State management
+    let currentMode = 'speed';
+    let messages = [];
     let messageCount = 0;
+    let estimatedTokens = 0;
 
     // DOM elements
-    const chatMessages = document.getElementById('chatMessages');
+    const chatEl = document.getElementById('chat');
     const userInput = document.getElementById('userInput');
     const sendBtn = document.getElementById('sendBtn');
-    const sendText = document.getElementById('sendText');
-    const loadingSpinner = document.getElementById('loadingSpinner');
-    const complexityRange = document.getElementById('complexityRange');
-    const complexityValue = document.getElementById('complexityValue');
-    const codeStats = document.getElementById('codeStats');
+    const typingIndicator = document.getElementById('typingIndicator');
+    const toggleControls = document.getElementById('toggleControls');
+    const controlsSection = document.getElementById('controlsSection');
+    const overlay = document.getElementById('overlay');
+    const modeButtons = document.querySelectorAll('.mode-btn');
+    const tempSlider = document.getElementById('temp');
+    const topPSlider = document.getElementById('topP');
+    const tempVal = document.getElementById('tempVal');
+    const topPVal = document.getElementById('topPVal');
+    const generateCodeBtn = document.getElementById('generateCode');
+    const codeOutput = document.getElementById('codeOutput');
+    const messageCountEl = document.getElementById('messageCount');
+    const tokenCountEl = document.getElementById('tokenCount');
+    const currentModeEl = document.getElementById('currentMode');
 
     // Auto-resize textarea
     userInput.addEventListener('input', function() {
       this.style.height = 'auto';
-      this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+      this.style.height = this.scrollHeight + 'px';
     });
 
-    // Update complexity value
-    complexityRange.addEventListener('input', function() {
-      complexity = parseInt(this.value);
-      complexityValue.textContent = complexity;
+    // Toggle controls panel
+    toggleControls.addEventListener('click', () => {
+      controlsSection.classList.toggle('open');
+      overlay.classList.toggle('show');
     });
 
-    // Toggle button handlers
-    document.querySelectorAll('.toggle-button').forEach(btn => {
-      btn.addEventListener('click', function() {
-        const group = this.parentElement;
-        const mode = this.dataset.mode;
-        const theme = this.dataset.theme;
-        const responsive = this.dataset.responsive;
+    overlay.addEventListener('click', () => {
+      controlsSection.classList.remove('open');
+      overlay.classList.remove('show');
+    });
 
-        // Remove active class from siblings
-        group.querySelectorAll('.toggle-button').forEach(b => b.classList.remove('active'));
-        this.classList.add('active');
-
-        // Update state
-        if (mode) currentMode = mode;
-        if (theme) currentTheme = theme;
-        if (responsive !== undefined) isResponsive = responsive === 'true';
+    // Mode selection
+    modeButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        modeButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentMode = btn.dataset.mode;
+        currentModeEl.textContent = btn.textContent;
+        optimizeParameters();
       });
     });
 
-    // Add message to chat
-    function addMessage(role, content, isCode = false) {
-      messageCount++;
-      const messageDiv = document.createElement('div');
-      messageDiv.className = `message ${role}`;
-      
-      const contentDiv = document.createElement('div');
-      contentDiv.className = 'message-content';
-      
-      if (isCode && role === 'bot') {
-        // Format code properly
-        const lines = content.split('\n').length;
-        const codeType = content.includes('<!DOCTYPE html') ? 'HTML' :
-                        content.includes('import React') ? 'React' :
-                        content.includes('function') ? 'JavaScript' : 'Code';
-        
-        contentDiv.innerHTML = `
-          <strong>📝 ${codeType} Code Generated</strong><br>
-          <small>📏 ${lines} lines | 🎯 Mode: ${currentMode}</small>
-          <pre><code>${escapeHtml(content)}</code></pre>
-        `;
+    // Parameter updates
+    tempSlider.addEventListener('input', () => {
+      tempVal.textContent = tempSlider.value;
+    });
 
-        // Update stats
-        updateCodeStats(codeType, lines);
-      } else {
-        contentDiv.innerHTML = formatMessage(content);
-      }
-      
-      messageDiv.appendChild(contentDiv);
-      chatMessages.appendChild(messageDiv);
-      chatMessages.scrollTop = chatMessages.scrollHeight;
+    topPSlider.addEventListener('input', () => {
+      topPVal.textContent = topPSlider.value;
+    });
+
+    // Quick command insertion
+    function insertQuickCommand(command) {
+      userInput.value = command;
+      userInput.focus();
     }
 
-    // Format message content
-    function formatMessage(content) {
+    // Add message to chat
+    function addMessage(role, content, isCode = false) {
+      const bubble = document.createElement('div');
+      bubble.className = `bubble ${role}${isCode ? ' code-bubble' : ''}`;
+      
+      if (role === 'user') {
+        bubble.textContent = content;
+      } else {
+        bubble.innerHTML = formatBotMessage(content, isCode);
+      }
+      
+      chatEl.appendChild(bubble);
+      chatEl.scrollTop = chatEl.scrollHeight;
+      
+      messageCount++;
+      messageCountEl.textContent = messageCount;
+      estimatedTokens += Math.ceil(content.length / 4);
+      tokenCountEl.textContent = `~${estimatedTokens}`;
+    }
+
+    // Format bot messages
+    function formatBotMessage(content, isCode) {
+      if (isCode) {
+        return content;
+      }
+      
+      // Simple markdown-like formatting
       return content
         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
         .replace(/\*(.*?)\*/g, '<em>$1</em>')
-        .replace(/`(.*?)`/g, '<code style="background: var(--code); padding: 2px 4px; border-radius: 4px;">$1</code>')
-        .replace(/\n/g, '<br>');
+        .replace(/`(.*?)`/g, '<code style="background: rgba(255,255,255,0.1); padding: 2px 4px; border-radius: 3px;">$1</code>');
     }
 
-    // Escape HTML
-    function escapeHtml(text) {
-      const div = document.createElement('div');
-      div.textContent = text;
-      return div.innerHTML;
-    }
-
-    // Update code statistics
-    function updateCodeStats(type, lines) {
-      const files = type === 'HTML' ? 1 : type === 'React' ? 2 : 1;
-      codeStats.innerHTML = `
-        🔧 สถิติโค้ด:<br>
-        📄 ไฟล์: ${files}<br>
-        📏 บรรทัด: ${lines}<br>
-        🏷️ ประเภท: ${type}<br>
-        ⚡ เวอร์ชัน: 1.${messageCount}
-      `;
-    }
-
-    // Generate code based on user input
-    async function generateCode(prompt) {
-      const templates = {
-        web: {
-          'เกมงูกินหาง': generateSnakeGame,
-          'โปงพาง': generatePongGame,
-          'แคลคูเลเตอร์': generateCalculator,
-          'โปรไฟล์': generateProfile,
-          'แปลงสกุลเงิน': generateCurrencyConverter,
-          'สภาพอากาศ': generateWeatherApp,
-          'todo': generateTodoApp,
-          'นาฬิกา': generateClock
-        },
-        react: {
-          'คอมโพเนนต์': generateReactComponent,
-          'ฟอร์ม': generateReactForm,
-          'แดชบอร์ด': generateReactDashboard
-        },
-        game: {
-          'เก็บเหรียญ': generateCoinGame,
-          'ตอบคำถาม': generateQuizGame,
-          'จับคู่': generateMemoryGame
-        }
-      };
-
-      // Find matching template
-      const modeTemplates = templates[currentMode] || templates.web;
-      let generator = null;
-
-      for (const [key, func] of Object.entries(modeTemplates)) {
-        if (prompt.toLowerCase().includes(key.toLowerCase())) {
-          generator = func;
+    // Optimize parameters based on mode
+    function optimizeParameters() {
+      const maxTokensEl = document.getElementById('maxTokens');
+      
+      switch(currentMode) {
+        case 'speed':
+          tempSlider.value = '0.3';
+          topPSlider.value = '0.8';
+          maxTokensEl.value = '1000';
           break;
-        }
+        case 'quality':
+          tempSlider.value = '0.7';
+          topPSlider.value = '0.9';
+          maxTokensEl.value = '3000';
+          break;
+        case 'balanced':
+          tempSlider.value = '0.5';
+          topPSlider.value = '0.85';
+          maxTokensEl.value = '2000';
+          break;
       }
-
-      // Default generator if no match
-      if (!generator) {
-        generator = currentMode === 'react' ? generateReactComponent : generateSimpleWebApp;
-      }
-
-      return generator(prompt);
+      
+      tempVal.textContent = tempSlider.value;
+      topPVal.textContent = topPSlider.value;
     }
 
-    // Template generators
-    function generateSnakeGame(prompt) {
+    // Generate code example
+    generateCodeBtn.addEventListener('click', () => {
+      const params = {
+        model: document.getElementById('modelSelect').value,
+        temperature: parseFloat(tempSlider.value),
+        max_tokens: parseInt(document.getElementById('maxTokens').value),
+        top_p: parseFloat(topPSlider.value)
+      };
+      
+      const codeExample = `// API Call Example
+const response = await fetch('${document.getElementById('endpoint').value}', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer YOUR_API_KEY'
+  },
+  body: JSON.stringify({
+    model: "${params.model}",
+    messages: [
+      {role: "system", content: "You are a helpful coding assistant"},
+      {role: "user", content: "Create a responsive website"}
+    ],
+    temperature: ${params.temperature},
+    max_tokens: ${params.max_tokens},
+    top_p: ${params.top_p}
+  })
+});
+
+const data = await response.json();
+console.log(data.choices[0].message.content);`;
+      
+      codeOutput.textContent = codeExample;
+    });
+
+    // Simulate AI response (replace with actual API call)
+    async function simulateAIResponse(userMessage) {
+      // Show typing indicator
+      typingIndicator.classList.add('show');
+      
+      await new Promise(resolve => setTimeout(resolve, 1500 + Math.random() * 2000));
+      
+      // Hide typing indicator
+      typingIndicator.classList.remove('show');
+      
+      // Simulate different types of responses based on keywords
+      if (userMessage.includes('เว็บไซต์') || userMessage.includes('website')) {
+        return {
+          message: "ได้เลยครับ! ผมจะสร้างเว็บไซต์ที่คุณต้องการให้",
+          code: generateWebsiteCode(userMessage)
+        };
+      } else if (userMessage.includes('API') || userMessage.includes('backend')) {
+        return {
+          message: "ผมจะสร้าง API backend สำหรับคุณ",
+          code: generateAPICode(userMessage)
+        };
+      } else if (userMessage.includes('เกม') || userMessage.includes('game')) {
+        return {
+          message: "สนุกดี! มาสร้างเกมกันเลย",
+          code: generateGameCode(userMessage)
+        };
+      } else {
+        return {
+          message: "ผมเข้าใจแล้ว ให้ผมสร้างโค้ดตามที่คุณต้องการ",
+          code: generateGenericCode(userMessage)
+        };
+      }
+    }
+
+    // Code generators (simplified examples)
+    function generateWebsiteCode(request) {
       return `<!DOCTYPE html>
 <html lang="th">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🐍 เกมงูกินหาง</title>
+    <title>My Website</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+        header { 
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex; justify-content: center; align-items: center;
-            min-height: 100vh; padding: 20px;
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
         }
-        .game-container {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px; padding: 30px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-            text-align: center; max-width: 600px; width: 100%;
+        .hero { padding: 4rem 0; background: #f8f9fa; }
+        .features { padding: 3rem 0; }
+        .feature-grid { 
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
         }
-        .title { font-size: 2.5rem; margin-bottom: 20px; color: #333; }
-        .score { font-size: 1.5rem; margin-bottom: 20px; color: #666; }
-        #gameCanvas {
-            border: 3px solid #333; border-radius: 10px;
-            background: #f0f0f0; display: block; margin: 0 auto;
+        .feature-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
         }
-        .controls {
-            margin-top: 20px; display: flex; gap: 10px;
-            justify-content: center; flex-wrap: wrap;
-        }
-        button {
-            padding: 12px 24px; font-size: 1rem; border: none;
-            border-radius: 25px; cursor: pointer; font-weight: bold;
-            transition: all 0.3s ease;
-        }
-        .start-btn { background: #4CAF50; color: white; }
-        .start-btn:hover { background: #45a049; transform: translateY(-2px); }
-        .restart-btn { background: #f44336; color: white; }
-        .restart-btn:hover { background: #da190b; transform: translateY(-2px); }
-        @media (max-width: 480px) {
-            .game-container { padding: 20px; }
-            .title { font-size: 2rem; }
-            #gameCanvas { width: 100%; height: auto; }
+        .feature-card:hover { transform: translateY(-5px); }
+        footer { background: #333; color: white; padding: 2rem 0; text-align: center; }
+        @media (max-width: 768px) {
+            .feature-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
-    <div class="game-container">
-        <h1 class="title">🐍 เกมงูกินหาง</h1>
-        <div class="score">คะแนน: <span id="score">0</span></div>
-        <canvas id="gameCanvas" width="400" height="400"></canvas>
-        <div class="controls">
-            <button class="start-btn" onclick="startGame()">เริ่มเกม</button>
-            <button class="restart-btn" onclick="restartGame()">เริ่มใหม่</button>
+    <header>
+        <div class="container">
+            <h1>Welcome to My Website</h1>
+            <p>สร้างด้วย Smart Code Bot</p>
         </div>
-        <p style="margin-top: 15px; color: #666;">ใช้ลูกศรหรือ WASD ในการเคลื่อนที่</p>
+    </header>
+    
+    <section class="hero">
+        <div class="container">
+            <h2>Modern Responsive Design</h2>
+            <p>เว็บไซต์ที่ใช้งานได้ทุกอุปกรณ์</p>
+        </div>
+    </section>
+    
+    <section class="features">
+        <div class="container">
+            <h2>Features</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h3>📱 Responsive</h3>
+                    <p>ใช้งานได้ทุกขนาดหน้าจอ</p>
+                </div>
+                <div class="feature-card">
+                    <h3>⚡ Fast</h3>
+                    <p>โหลดเร็ว ประสิทธิภาพสูง</p>
+                </div>
+                <div class="feature-card">
+                    <h3>🎨 Modern</h3>
+                    <p>ดีไซน์ทันสมัย สวยงาม</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 My Website. Created with Smart Code Bot.</p>
+        </div>
+    </footer>
+</body>
+</html>`;
+    }
+
+    function generateAPICode(request) {
+      return `// Node.js Express API
+const express = require('express');
+const cors = require('cors');
+const app = express();
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+
+// Sample data
+let users = [
+    { id: 1, name: 'John Doe', email: 'john@example.com' },
+    { id: 2, name: 'Jane Smith', email: 'jane@example.com' }
+];
+
+// Routes
+app.get('/api/users', (req, res) => {
+    res.json({ success: true, data: users });
+});
+
+app.get('/api/users/:id', (req, res) => {
+    const user = users.find(u => u.id === parseInt(req.params.id));
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+    res.json({ success: true, data: user });
+});
+
+app.post('/api/users', (req, res) => {
+    const { name, email } = req.body;
+    const newUser = {
+        id: users.length + 1,
+        name,
+        email
+    };
+    users.push(newUser);
+    res.status(201).json({ success: true, data: newUser });
+});
+
+app.put('/api/users/:id', (req, res) => {
+    const user = users.find(u => u.id === parseInt(req.params.id));
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+    
+    const { name, email } = req.body;
+    user.name = name || user.name;
+    user.email = email || user.email;
+    
+    res.json({ success: true, data: user });
+});
+
+app.delete('/api/users/:id', (req, res) => {
+    const index = users.findIndex(u => u.id === parseInt(req.params.id));
+    if (index === -1) return res.status(404).json({ success: false, message: 'User not found' });
+    
+    users.splice(index, 1);
+    res.json({ success: true, message: 'User deleted' });
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(\`Server running on port \${PORT}\`);
+});
+
+// package.json
+{
+  "name": "user-api",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.0",
+    "cors": "^2.8.5"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.20"
+  }
+}`;
+    }
+
+    function generateGameCode(request) {
+      return `<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake Game</title>
+    <style>
+        body { 
+            margin: 0; 
+            padding: 20px;
+            background: #222; 
+            color: white; 
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        canvas { 
+            border: 2px solid #fff; 
+            background: #000;
+            touch-action: none;
+        }
+        .controls { 
+            margin: 20px 0; 
+            display: grid;
+            grid-template-columns: repeat(3, 60px);
+            gap: 10px;
+            justify-items: center;
+        }
+        .btn { 
+            width: 50px; 
+            height: 50px; 
+            border: none; 
+            background: #4CAF50; 
+            color: white; 
+            border-radius: 5px;
+            font-size: 20px;
+            cursor: pointer;
+        }
+        .score { font-size: 24px; margin: 10px 0; }
+        @media (max-width: 600px) {
+            canvas { width: 90vw; height: 90vw; }
+        }
+    </style>
+</head>
+<body>
+    <h1>🐍 Snake Game</h1>
+    <div class="score">Score: <span id="score">0</span></div>
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+    
+    <div class="controls">
+        <div></div>
+        <button class="btn" onclick="changeDirection('up')">↑</button>
+        <div></div>
+        <button class="btn" onclick="changeDirection('left')">←</button>
+        <button class="btn" onclick="resetGame()">🔄</button>
+        <button class="btn" onclick="changeDirection('right')">→</button>
+        <div></div>
+        <button class="btn" onclick="changeDirection('down')">↓</button>
+        <div></div>
     </div>
 
     <script>
@@ -782,42 +987,38 @@
 
         let snake = [{ x: 10, y: 10 }];
         let food = { x: 15, y: 15 };
-        let dx = 0; let dy = 0;
-        let score = 0; let gameRunning = false;
+        let dx = 0, dy = 0;
+        let score = 0;
 
         function drawGame() {
             clearCanvas();
             moveSnake();
             drawSnake();
             drawFood();
-            checkCollision();
+            checkGameEnd();
         }
 
         function clearCanvas() {
-            ctx.fillStyle = '#f0f0f0';
+            ctx.fillStyle = 'black';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
         }
 
         function drawSnake() {
-            ctx.fillStyle = '#4CAF50';
-            snake.forEach((part, index) => {
-                if (index === 0) ctx.fillStyle = '#2E7D32'; // head
-                else ctx.fillStyle = '#4CAF50'; // body
-                ctx.fillRect(part.x * gridSize, part.y * gridSize, gridSize - 2, gridSize - 2);
+            ctx.fillStyle = 'lime';
+            snake.forEach(segment => {
+                ctx.fillRect(segment.x * gridSize, segment.y * gridSize, gridSize - 2, gridSize - 2);
             });
         }
 
         function drawFood() {
-            ctx.fillStyle = '#f44336';
-            ctx.beginPath();
-            ctx.arc(food.x * gridSize + gridSize/2, food.y * gridSize + gridSize/2, gridSize/2 - 1, 0, 2 * Math.PI);
-            ctx.fill();
+            ctx.fillStyle = 'red';
+            ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize - 2, gridSize - 2);
         }
 
         function moveSnake() {
             const head = { x: snake[0].x + dx, y: snake[0].y + dy };
             snake.unshift(head);
-            
+
             if (head.x === food.x && head.y === food.y) {
                 score += 10;
                 scoreElement.textContent = score;
@@ -834,1402 +1035,206 @@
             };
         }
 
-        function checkCollision() {
+        function changeDirection(direction) {
+            switch(direction) {
+                case 'up': if (dy === 0) { dx = 0; dy = -1; } break;
+                case 'down': if (dy === 0) { dx = 0; dy = 1; } break;
+                case 'left': if (dx === 0) { dx = -1; dy = 0; } break;
+                case 'right': if (dx === 0) { dx = 1; dy = 0; } break;
+            }
+        }
+
+        function checkGameEnd() {
             const head = snake[0];
             
-            // Wall collision
             if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount) {
-                gameOver();
+                resetGame();
             }
             
-            // Self collision
-            for (let i = 1; i < snake.length; i++) {
+            for (let i = 4; i < snake.length; i++) {
                 if (head.x === snake[i].x && head.y === snake[i].y) {
-                    gameOver();
+                    resetGame();
                 }
             }
         }
 
-        function gameOver() {
-            gameRunning = false;
-            alert('เกมจบ! คะแนนของคุณ: ' + score);
-        }
-
-        function startGame() {
-            if (!gameRunning) {
-                gameRunning = true;
-                gameLoop();
-            }
-        }
-
-        function restartGame() {
+        function resetGame() {
             snake = [{ x: 10, y: 10 }];
-            dx = 0; dy = 0; score = 0;
+            food = { x: 15, y: 15 };
+            dx = 0; dy = 0;
+            score = 0;
             scoreElement.textContent = score;
-            generateFood();
-            gameRunning = false;
         }
 
-        function gameLoop() {
-            if (gameRunning) {
-                drawGame();
-                setTimeout(gameLoop, 150);
-            }
-        }
-
+        // Keyboard controls
         document.addEventListener('keydown', (e) => {
-            if (!gameRunning) return;
-            
-            const key = e.key.toLowerCase();
-            if ((key === 'arrowup' || key === 'w') && dy === 0) { dx = 0; dy = -1; }
-            else if ((key === 'arrowdown' || key === 's') && dy === 0) { dx = 0; dy = 1; }
-            else if ((key === 'arrowleft' || key === 'a') && dx === 0) { dx = -1; dy = 0; }
-            else if ((key === 'arrowright' || key === 'd') && dx === 0) { dx = 1; dy = 0; }
+            switch(e.key) {
+                case 'ArrowUp': changeDirection('up'); break;
+                case 'ArrowDown': changeDirection('down'); break;
+                case 'ArrowLeft': changeDirection('left'); break;
+                case 'ArrowRight': changeDirection('right'); break;
+            }
         });
 
-        // Touch controls for mobile
-        let touchStartX = 0; let touchStartY = 0;
+        // Touch controls
+        let touchStartX, touchStartY;
         canvas.addEventListener('touchstart', (e) => {
             touchStartX = e.touches[0].clientX;
             touchStartY = e.touches[0].clientY;
         });
 
         canvas.addEventListener('touchend', (e) => {
-            if (!gameRunning) return;
+            if (!touchStartX || !touchStartY) return;
+            
             const touchEndX = e.changedTouches[0].clientX;
             const touchEndY = e.changedTouches[0].clientY;
+            
             const diffX = touchStartX - touchEndX;
             const diffY = touchStartY - touchEndY;
-
+            
             if (Math.abs(diffX) > Math.abs(diffY)) {
-                if (diffX > 0 && dx === 0) { dx = -1; dy = 0; } // left
-                else if (diffX < 0 && dx === 0) { dx = 1; dy = 0; } // right
+                changeDirection(diffX > 0 ? 'left' : 'right');
             } else {
-                if (diffY > 0 && dy === 0) { dx = 0; dy = -1; } // up
-                else if (diffY < 0 && dy === 0) { dx = 0; dy = 1; } // down
+                changeDirection(diffY > 0 ? 'up' : 'down');
             }
         });
 
-        // Initialize
-        generateFood();
-        drawGame();
+        // Start game
+        setInterval(drawGame, 200);
     </script>
 </body>
 </html>`;
     }
 
-    function generateCalculator(prompt) {
-      return `<!DOCTYPE html>
+    function generateGenericCode(request) {
+      return `// Generated Code Template
+// Request: ${request}
+
+<!DOCTYPE html>
 <html lang="th">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🧮 เครื่องคิดเลข</title>
+    <title>Generated App</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #74b9ff, #0984e3);
-            display: flex; justify-content: center; align-items: center;
-            min-height: 100vh; padding: 20px;
-        }
-        .calculator {
-            background: linear-gradient(145deg, #2d3436, #636e72);
-            border-radius: 25px; padding: 30px;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
-            max-width: 350px; width: 100%;
-        }
-        .display {
-            background: #2d3436; color: #ddd;
-            font-size: 2.5rem; text-align: right;
-            padding: 20px; margin-bottom: 20px;
-            border-radius: 15px; min-height: 80px;
-            display: flex; align-items: center; justify-content: flex-end;
-            border: 2px solid #636e72;
-        }
-        .buttons {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 15px;
-        }
-        .btn {
-            height: 70px; border: none; border-radius: 15px;
-            font-size: 1.3rem; font-weight: bold; cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        }
-        .btn:active { transform: translateY(2px); }
-        .number { background: linear-gradient(145deg, #74b9ff, #0984e3); color: white; }
-        .operator { background: linear-gradient(145deg, #fd79a8, #e84393); color: white; }
-        .clear { background: linear-gradient(145deg, #fd79a8, #e84393); color: white; }
-        .equals { background: linear-gradient(145deg, #00b894, #00a085); color: white; grid-column: span 2; }
-        .zero { grid-column: span 2; }
-        
-        @media (max-width: 480px) {
-            .calculator { padding: 20px; }
-            .display { font-size: 2rem; padding: 15px; }
-            .btn { height: 60px; font-size: 1.1rem; }
-        }
-    </style>
-</head>
-<body>
-    <div class="calculator">
-        <div class="display" id="display">0</div>
-        <div class="buttons">
-            <button class="btn clear" onclick="clearAll()">C</button>
-            <button class="btn clear" onclick="clearEntry()">CE</button>
-            <button class="btn operator" onclick="deleteLast()">⌫</button>
-            <button class="btn operator" onclick="appendOperator('/')">÷</button>
-            
-            <button class="btn number" onclick="appendNumber('7')">7</button>
-            <button class="btn number" onclick="appendNumber('8')">8</button>
-            <button class="btn number" onclick="appendNumber('9')">9</button>
-            <button class="btn operator" onclick="appendOperator('*')">×</button>
-            
-            <button class="btn number" onclick="appendNumber('4')">4</button>
-            <button class="btn number" onclick="appendNumber('5')">5</button>
-            <button class="btn number" onclick="appendNumber('6')">6</button>
-            <button class="btn operator" onclick="appendOperator('-')">-</button>
-            
-            <button class="btn number" onclick="appendNumber('1')">1</button>
-            <button class="btn number" onclick="appendNumber('2')">2</button>
-            <button class="btn number" onclick="appendNumber('3')">3</button>
-            <button class="btn operator" onclick="appendOperator('+')">+</button>
-            
-            <button class="btn number zero" onclick="appendNumber('0')">0</button>
-            <button class="btn number" onclick="appendNumber('.')">.</button>
-            <button class="btn equals" onclick="calculate()">=</button>
-        </div>
-    </div>
-
-    <script>
-        let display = document.getElementById('display');
-        let currentInput = '0';
-        let operator = null;
-        let previousInput = null;
-        let waitingForOperand = false;
-
-        function updateDisplay() {
-            display.textContent = currentInput;
-        }
-
-        function appendNumber(num) {
-            if (waitingForOperand) {
-                currentInput = num;
-                waitingForOperand = false;
-            } else {
-                currentInput = currentInput === '0' ? num : currentInput + num;
-            }
-            updateDisplay();
-        }
-
-        function appendOperator(nextOperator) {
-            const inputValue = parseFloat(currentInput);
-
-            if (previousInput === null) {
-                previousInput = inputValue;
-            } else if (operator) {
-                const currentValue = previousInput || 0;
-                const newValue = performCalculation(currentValue, inputValue, operator);
-
-                currentInput = String(newValue);
-                previousInput = newValue;
-                updateDisplay();
-            }
-
-            waitingForOperand = true;
-            operator = nextOperator;
-        }
-
-        function calculate() {
-            const inputValue = parseFloat(currentInput);
-
-            if (previousInput !== null && operator) {
-                const newValue = performCalculation(previousInput, inputValue, operator);
-                currentInput = String(newValue);
-                previousInput = null;
-                operator = null;
-                waitingForOperand = true;
-                updateDisplay();
-            }
-        }
-
-        function performCalculation(firstOperand, secondOperand, operator) {
-            switch (operator) {
-                case '+': return firstOperand + secondOperand;
-                case '-': return firstOperand - secondOperand;
-                case '*': return firstOperand * secondOperand;
-                case '/': return secondOperand !== 0 ? firstOperand / secondOperand : 0;
-                default: return secondOperand;
-            }
-        }
-
-        function clearAll() {
-            currentInput = '0';
-            previousInput = null;
-            operator = null;
-            waitingForOperand = false;
-            updateDisplay();
-        }
-
-        function clearEntry() {
-            currentInput = '0';
-            updateDisplay();
-        }
-
-        function deleteLast() {
-            if (currentInput.length > 1) {
-                currentInput = currentInput.slice(0, -1);
-            } else {
-                currentInput = '0';
-            }
-            updateDisplay();
-        }
-
-        // Keyboard support
-        document.addEventListener('keydown', (e) => {
-            if (e.key >= '0' && e.key <= '9' || e.key === '.') {
-                appendNumber(e.key);
-            } else if (e.key === '+' || e.key === '-') {
-                appendOperator(e.key);
-            } else if (e.key === '*') {
-                appendOperator('*');
-            } else if (e.key === '/') {
-                e.preventDefault();
-                appendOperator('/');
-            } else if (e.key === 'Enter' || e.key === '=') {
-                calculate();
-            } else if (e.key === 'Escape') {
-                clearAll();
-            } else if (e.key === 'Backspace') {
-                deleteLast();
-            }
-        });
-    </script>
-</body>
-</html>`;
-    }
-
-    function generateReactComponent(prompt) {
-      return `import React, { useState, useEffect } from 'react';
-
-const ModernApp = () => {
-  const [count, setCount] = useState(0);
-  const [theme, setTheme] = useState('dark');
-  const [todos, setTodos] = useState([]);
-  const [newTodo, setNewTodo] = useState('');
-
-  useEffect(() => {
-    document.body.className = theme;
-  }, [theme]);
-
-  const addTodo = () => {
-    if (newTodo.trim()) {
-      setTodos([...todos, { id: Date.now(), text: newTodo, completed: false }]);
-      setNewTodo('');
-    }
-  };
-
-  const toggleTodo = (id) => {
-    setTodos(todos.map(todo => 
-      todo.id === id ? { ...todo, completed: !todo.completed } : todo
-    ));
-  };
-
-  const deleteTodo = (id) => {
-    setTodos(todos.filter(todo => todo.id !== id));
-  };
-
-  return (
-    <div className={\`app-container \${theme}\`}>
-      <div className="header">
-        <h1>⚛️ Modern React App</h1>
-        <button 
-          className="theme-toggle"
-          onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-        >
-          {theme === 'dark' ? '☀️' : '🌙'} 
-        </button>
-      </div>
-
-      <div className="content">
-        <div className="counter-section">
-          <h2>📊 Counter</h2>
-          <div className="counter">
-            <button onClick={() => setCount(count - 1)}>➖</button>
-            <span className="count">{count}</span>
-            <button onClick={() => setCount(count + 1)}>➕</button>
-          </div>
-        </div>
-
-        <div className="todo-section">
-          <h2>📝 Todo List</h2>
-          <div className="todo-input">
-            <input
-              type="text"
-              value={newTodo}
-              onChange={(e) => setNewTodo(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && addTodo()}
-              placeholder="เพิ่มรายการใหม่..."
-            />
-            <button onClick={addTodo}>เพิ่ม</button>
-          </div>
-          
-          <div className="todo-list">
-            {todos.map(todo => (
-              <div key={todo.id} className={\`todo-item \${todo.completed ? 'completed' : ''}\`}>
-                <input
-                  type="checkbox"
-                  checked={todo.completed}
-                  onChange={() => toggleTodo(todo.id)}
-                />
-                <span>{todo.text}</span>
-                <button onClick={() => deleteTodo(todo.id)}>🗑️</button>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <style jsx>{\`
-        .app-container {
-          min-height: 100vh;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-          transition: all 0.3s ease;
-        }
-        
-        .app-container.dark {
-          background: linear-gradient(135deg, #1e293b, #334155);
-          color: #f1f5f9;
-        }
-        
-        .app-container.light {
-          background: linear-gradient(135deg, #f8fafc, #e2e8f0);
-          color: #1e293b;
-        }
-        
-        .header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 2rem;
-          background: rgba(255, 255, 255, 0.1);
-          backdrop-filter: blur(10px);
-        }
-        
-        .theme-toggle {
-          background: none;
-          border: 2px solid currentColor;
-          color: inherit;
-          padding: 0.5rem 1rem;
-          border-radius: 25px;
-          cursor: pointer;
-          font-size: 1rem;
-          transition: all 0.3s ease;
-        }
-        
-        .theme-toggle:hover {
-          background: rgba(255, 255, 255, 0.1);
-          transform: scale(1.05);
-        }
-        
-        .content {
-          padding: 2rem;
-          max-width: 800px;
-          margin: 0 auto;
-          display: grid;
-          gap: 2rem;
-        }
-        
-        .counter-section, .todo-section {
-          background: rgba(255, 255, 255, 0.1);
-          backdrop-filter: blur(10px);
-          padding: 2rem;
-          border-radius: 20px;
-          border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        
-        .counter {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 1rem;
-          margin-top: 1rem;
-        }
-        
-        .counter button {
-          background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-          color: white;
-          border: none;
-          width: 50px;
-          height: 50px;
-          border-radius: 50%;
-          cursor: pointer;
-          font-size: 1.2rem;
-          transition: all 0.3s ease;
-        }
-        
-        .counter button:hover {
-          transform: scale(1.1);
-          box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
-        }
-        
-        .count {
-          font-size: 2rem;
-          font-weight: bold;
-          min-width: 60px;
-          text-align: center;
-        }
-        
-        .todo-input {
-          display: flex;
-          gap: 1rem;
-          margin-bottom: 1rem;
-        }
-        
-        .todo-input input {
-          flex: 1;
-          padding: 0.75rem;
-          border: 2px solid rgba(255, 255, 255, 0.2);
-          border-radius: 10px;
-          background: rgba(255, 255, 255, 0.1);
-          color: inherit;
-          font-size: 1rem;
-        }
-        
-        .todo-input input:focus {
-          outline: none;
-          border-color: #3b82f6;
-          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-        }
-        
-        .todo-input button {
-          background: linear-gradient(135deg, #10b981, #059669);
-          color: white;
-          border: none;
-          padding: 0.75rem 1.5rem;
-          border-radius: 10px;
-          cursor: pointer;
-          font-weight: 600;
-          transition: all 0.3s ease;
-        }
-        
-        .todo-input button:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3);
-        }
-        
-        .todo-list {
-          display: flex;
-          flex-direction: column;
-          gap: 0.5rem;
-        }
-        
-        .todo-item {
-          display: flex;
-          align-items: center;
-          gap: 1rem;
-          padding: 1rem;
-          background: rgba(255, 255, 255, 0.05);
-          border-radius: 10px;
-          transition: all 0.3s ease;
-        }
-        
-        .todo-item:hover {
-          background: rgba(255, 255, 255, 0.1);
-          transform: translateX(5px);
-        }
-        
-        .todo-item.completed {
-          opacity: 0.6;
-          text-decoration: line-through;
-        }
-        
-        .todo-item input[type="checkbox"] {
-          width: 20px;
-          height: 20px;
-          cursor: pointer;
-        }
-        
-        .todo-item span {
-          flex: 1;
-        }
-        
-        .todo-item button {
-          background: none;
-          border: none;
-          cursor: pointer;
-          font-size: 1.2rem;
-          opacity: 0.7;
-          transition: all 0.3s ease;
-        }
-        
-        .todo-item button:hover {
-          opacity: 1;
-          transform: scale(1.2);
-        }
-        
-        @media (max-width: 768px) {
-          .header {
-            padding: 1rem;
-          }
-          
-          .content {
-            padding: 1rem;
-          }
-          
-          .counter-section, .todo-section {
-            padding: 1.5rem;
-          }
-          
-          .todo-input {
-            flex-direction: column;
-          }
-        }
-      \`}</style>
-    </div>
-  );
-};
-
-export default ModernApp;`;
-    }
-
-    function generateSimpleWebApp(prompt) {
-      const templates = {
-        'portfolio': generateProfile,
-        'profile': generateProfile,
-        'landing': generateLandingPage,
-        'dashboard': generateDashboard,
-        'form': generateForm
-      };
-
-      for (const [key, func] of Object.entries(templates)) {
-        if (prompt.toLowerCase().includes(key)) {
-          return func(prompt);
-        }
-      }
-
-      return generateLandingPage(prompt);
-    }
-
-    function generateProfile(prompt) {
-      return `<!DOCTYPE html>
-<html lang="th">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>👨‍💻 Portfolio Profile</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            line-height: 1.6; background: #0f172a; color: #f1f5f9;
-            overflow-x: hidden;
-        }
-        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
-        
-        .header {
-            background: linear-gradient(135deg, #1e293b, #334155);
-            padding: 100px 0; text-align: center; position: relative;
-            overflow: hidden;
-        }
-        .header::before {
-            content: ''; position: absolute; top: 0; left: 0;
-            width: 100%; height: 100%; 
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="2" fill="%234f46e5" opacity="0.3"/></svg>') repeat;
-            animation: float 20s infinite linear;
-        }
-        @keyframes float { 0% { transform: translateY(0px); } 100% { transform: translateY(-100px); } }
-        
-        .profile-img {
-            width: 150px; height: 150px; border-radius: 50%;
-            background: linear-gradient(135deg, #4f46e5, #7c3aed);
-            margin: 0 auto 30px; display: flex; align-items: center;
-            justify-content: center; font-size: 4rem; position: relative; z-index: 1;
-            box-shadow: 0 20px 40px rgba(79, 70, 229, 0.3);
-        }
-        
-        .header h1 { font-size: 3rem; margin-bottom: 10px; position: relative; z-index: 1; }
-        .header p { font-size: 1.2rem; color: #94a3b8; position: relative; z-index: 1; }
-        
-        .nav {
-            background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(10px);
-            padding: 20px 0; position: sticky; top: 0; z-index: 100;
-            border-bottom: 1px solid #334155;
-        }
-        .nav ul { list-style: none; display: flex; justify-content: center; gap: 30px; }
-        .nav a { 
-            color: #f1f5f9; text-decoration: none; font-weight: 500;
-            padding: 10px 20px; border-radius: 25px; transition: all 0.3s ease;
-        }
-        .nav a:hover { background: #4f46e5; transform: translateY(-2px); }
-        
-        .section {
-            padding: 80px 0; background: #0f172a;
-            border-bottom: 1px solid #1e293b;
-        }
-        .section:nth-child(even) { background: #1e293b; }
-        
-        .section h2 {
-            font-size: 2.5rem; text-align: center; margin-bottom: 50px;
-            background: linear-gradient(135deg, #4f46e5, #06b6d4);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-        }
-        
-        .skills-grid {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 30px; margin-top: 50px;
-        }
-        .skill-card {
-            background: linear-gradient(135deg, #1e293b, #334155);
-            padding: 30px; border-radius: 20px; text-align: center;
-            transition: all 0.3s ease; border: 1px solid #334155;
-        }
-        .skill-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 20px 40px rgba(79, 70, 229, 0.2);
-        }
-        .skill-card .icon { font-size: 3rem; margin-bottom: 20px; }
-        
-        .projects-grid {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 30px; margin-top: 50px;
-        }
-        .project-card {
-            background: linear-gradient(135deg, #1e293b, #334155);
-            border-radius: 20px; overflow: hidden; transition: all 0.3s ease;
-            border: 1px solid #334155;
-        }
-        .project-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 20px 40px rgba(79, 70, 229, 0.2);
-        }
-        .project-img {
-            height: 200px; background: linear-gradient(135deg, #4f46e5, #06b6d4);
-            display: flex; align-items: center; justify-content: center;
-            font-size: 3rem; color: white;
-        }
-        .project-content { padding: 30px; }
-        .project-content h3 { margin-bottom: 15px; color: #4f46e5; }
-        
-        .contact {
-            background: linear-gradient(135deg, #1e293b, #334155);
-            padding: 80px 0; text-align: center;
-        }
-        .contact-links {
-            display: flex; justify-content: center; gap: 30px;
-            margin-top: 40px; flex-wrap: wrap;
-        }
-        .contact-link {
-            display: inline-flex; align-items: center; gap: 10px;
-            padding: 15px 30px; background: #4f46e5; color: white;
-            text-decoration: none; border-radius: 25px; font-weight: 500;
-            transition: all 0.3s ease;
-        }
-        .contact-link:hover {
-            background: #3730a3; transform: translateY(-3px);
-            box-shadow: 0 10px 25px rgba(79, 70, 229, 0.4);
-        }
-        
-        @media (max-width: 768px) {
-            .header h1 { font-size: 2rem; }
-            .nav ul { flex-direction: column; text-align: center; gap: 15px; }
-            .section { padding: 50px 0; }
-            .section h2 { font-size: 2rem; }
-            .skills-grid, .projects-grid { grid-template-columns: 1fr; }
-            .contact-links { flex-direction: column; align-items: center; }
-        }
-    </style>
-</head>
-<body>
-    <header class="header">
-        <div class="container">
-            <div class="profile-img">👨‍💻</div>
-            <h1>สวัสดี ผม คือ นักพัฒนา</h1>
-            <p>Full Stack Developer & UI/UX Designer</p>
-        </div>
-    </header>
-
-    <nav class="nav">
-        <div class="container">
-            <ul>
-                <li><a href="#about">เกี่ยวกับ</a></li>
-                <li><a href="#skills">ทักษะ</a></li>
-                <li><a href="#projects">ผลงาน</a></li>
-                <li><a href="#contact">ติดต่อ</a></li>
-            </ul>
-        </div>
-    </nav>
-
-    <section id="about" class="section">
-        <div class="container">
-            <h2>เกี่ยวกับผม</h2>
-            <p style="text-align: center; font-size: 1.2rem; max-width: 800px; margin: 0 auto; color: #94a3b8;">
-                ผมเป็นนักพัฒนาเว็บไซต์ที่มีประสบการณ์ในการสร้างแอปพลิเคชันที่ทันสมัยและใช้งานง่าย 
-                มีความเชี่ยวชาญในเทคโนโลยีต่างๆ และชอบเรียนรู้สิ่งใหม่ๆ อยู่เสมอ
-            </p>
-        </div>
-    </section>
-
-    <section id="skills" class="section">
-        <div class="container">
-            <h2>ทักษะของผม</h2>
-            <div class="skills-grid">
-                <div class="skill-card">
-                    <div class="icon">🌐</div>
-                    <h3>Frontend Development</h3>
-                    <p>React, Vue.js, HTML5, CSS3, JavaScript</p>
-                </div>
-                <div class="skill-card">
-                    <div class="icon">⚙️</div>
-                    <h3>Backend Development</h3>
-                    <p>Node.js, Python, PHP, MySQL, MongoDB</p>
-                </div>
-                <div class="skill-card">
-                    <div class="icon">🎨</div>
-                    <h3>UI/UX Design</h3>
-                    <p>Figma, Adobe XD, Photoshop, Illustrator</p>
-                </div>
-                <div class="skill-card">
-                    <div class="icon">📱</div>
-                    <h3>Mobile Development</h3>
-                    <p>React Native, Flutter, iOS, Android</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section id="projects" class="section">
-        <div class="container">
-            <h2>ผลงานของผม</h2>
-            <div class="projects-grid">
-                <div class="project-card">
-                    <div class="project-img">🛒</div>
-                    <div class="project-content">
-                        <h3>E-commerce Platform</h3>
-                        <p>แพลตฟอร์มอีคอมเมิร์ซที่สมบูรณ์แบบ พร้อมระบบชำระเงินและจัดการสินค้า</p>
-                    </div>
-                </div>
-                <div class="project-card">
-                    <div class="project-img">📊</div>
-                    <div class="project-content">
-                        <h3>Analytics Dashboard</h3>
-                        <p>แดชบอร์ดสำหรับวิเคราะห์ข้อมูล พร้อมกราฟและรายงานแบบเรียลไทม์</p>
-                    </div>
-                </div>
-                <div class="project-card">
-                    <div class="project-img">🎵</div>
-                    <div class="project-content">
-                        <h3>Music Streaming App</h3>
-                        <p>แอปพลิเคชันสตรีมมิ่งเพลงพร้อมฟีเจอร์เพลย์ลิสต์และแนะนำเพลง</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section id="contact" class="contact">
-        <div class="container">
-            <h2>ติดต่อผม</h2>
-            <p style="font-size: 1.2rem; color: #94a3b8; margin-bottom: 30px;">
-                สนใจทำงานร่วมกัน? ติดต่อผมได้เลย!
-            </p>
-            <div class="contact-links">
-                <a href="mailto:contact@example.com" class="contact-link">
-                    📧 Email
-                </a>
-                <a href="tel:+66123456789" class="contact-link">
-                    📞 โทรศัพท์
-                </a>
-                <a href="#" class="contact-link">
-                    💼 LinkedIn
-                </a>
-                <a href="#" class="contact-link">
-                    🐙 GitHub
-                </a>
-            </div>
-        </div>
-    </section>
-
-    <script>
-        // Smooth scrolling for navigation links
-        document.querySelectorAll('.nav a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    });
-                }
-            });
-        });
-
-        // Add scroll effect to navigation
-        window.addEventListener('scroll', () => {
-            const nav = document.querySelector('.nav');
-            if (window.scrollY > 100) {
-                nav.style.background = 'rgba(15, 23, 42, 0.95)';
-            } else {
-                nav.style.background = 'rgba(15, 23, 42, 0.9)';
-            }
-        });
-
-        // Animate cards on scroll
-        const observerOptions = {
-            threshold: 0.1,
-            rootMargin: '0px 0px -50px 0px'
-        };
-
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.style.opacity = '1';
-                    entry.target.style.transform = 'translateY(0)';
-                }
-            });
-        }, observerOptions);
-
-        // Observe all cards
-        document.querySelectorAll('.skill-card, .project-card').forEach(card => {
-            card.style.opacity = '0';
-            card.style.transform = 'translateY(30px)';
-            card.style.transition = 'all 0.6s ease';
-            observer.observe(card);
-        });
-    </script>
-</body>
-</html>`;
-    }
-
-    function generateLandingPage(prompt) {
-      return `<!DOCTYPE html>
-<html lang="th">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🚀 Modern Landing Page</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            line-height: 1.6; overflow-x: hidden;
-        }
-        
-        .hero {
+            font-family: system-ui, -apple-system, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh; display: flex; align-items: center;
-            position: relative; color: white; text-align: center;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        .hero::before {
-            content: ''; position: absolute; top: 0; left: 0;
-            width: 100%; height: 100%; 
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="1" fill="white" opacity="0.1"/></svg>') repeat;
-            animation: twinkle 3s infinite;
+        .app { 
+            background: white;
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            max-width: 500px;
+            width: 90%;
         }
-        @keyframes twinkle { 0%, 100% { opacity: 0.1; } 50% { opacity: 0.3; } }
-        
-        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; position: relative; z-index: 1; }
-        
-        .hero h1 {
-            font-size: 4rem; font-weight: 800; margin-bottom: 20px;
-            background: linear-gradient(45deg, #fff, #f0f0f0);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            animation: slideInUp 1s ease-out;
-        }
-        .hero p {
-            font-size: 1.5rem; margin-bottom: 40px; opacity: 0.9;
-            animation: slideInUp 1s ease-out 0.3s both;
-        }
-        
-        @keyframes slideInUp {
-            from { opacity: 0; transform: translateY(50px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .cta-buttons {
-            display: flex; gap: 20px; justify-content: center;
-            flex-wrap: wrap; animation: slideInUp 1s ease-out 0.6s both;
-        }
-        .btn {
-            padding: 15px 30px; border-radius: 50px; text-decoration: none;
-            font-weight: 600; font-size: 1.1rem; transition: all 0.3s ease;
-            display: inline-flex; align-items: center; gap: 10px;
-        }
-        .btn-primary {
-            background: linear-gradient(135deg, #4CAF50, #45a049);
-            color: white; border: none;
-        }
-        .btn-secondary {
-            background: transparent; color: white;
-            border: 2px solid rgba(255,255,255,0.8);
-        }
-        .btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-        }
-        
-        .features {
-            padding: 100px 0; background: #f8f9fa;
-        }
-        .features h2 {
-            font-size: 3rem; text-align: center; margin-bottom: 60px;
-            color: #333; font-weight: 700;
-        }
-        .features-grid {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 40px; margin-top: 60px;
-        }
-        .feature-card {
-            background: white; padding: 40px; border-radius: 20px;
-            text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            transition: all 0.3s ease; border: 1px solid #e9ecef;
-        }
-        .feature-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
-        }
-        .feature-icon {
-            font-size: 3.5rem; margin-bottom: 20px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-        }
-        .feature-card h3 {
-            font-size: 1.5rem; margin-bottom: 15px; color: #333;
-        }
-        .feature-card p {
-            color: #666; line-height: 1.6;
-        }
-        
-        .stats {
-            background: linear-gradient(135deg, #2c3e50, #34495e);
-            padding: 80px 0; color: white; text-align: center;
-        }
-        .stats-grid {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 40px; margin-top: 40px;
-        }
-        .stat-item h3 {
-            font-size: 3rem; font-weight: 800; margin-bottom: 10px;
-            color: #3498db;
-        }
-        .stat-item p {
-            font-size: 1.2rem; opacity: 0.9;
-        }
-        
-        .cta-section {
-            background: linear-gradient(135deg, #FF6B6B, #4ECDC4);
-            padding: 100px 0; text-align: center; color: white;
-        }
-        .cta-section h2 {
-            font-size: 3rem; margin-bottom: 20px; font-weight: 700;
-        }
-        .cta-section p {
-            font-size: 1.3rem; margin-bottom: 40px; opacity: 0.9;
-        }
-        
-        .footer {
-            background: #1a1a1a; color: white; padding: 50px 0;
+        .title { 
+            font-size: 2rem;
+            color: #333;
+            margin-bottom: 1rem;
             text-align: center;
         }
-        .footer-content {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 40px; margin-bottom: 40px; text-align: left;
+        .content { 
+            color: #666;
+            line-height: 1.6;
+            text-align: center;
         }
-        .footer-section h3 {
-            margin-bottom: 20px; color: #3498db;
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 1rem;
+            transition: all 0.3s ease;
         }
-        .footer-section a {
-            color: #bbb; text-decoration: none; display: block;
-            margin-bottom: 10px; transition: color 0.3s ease;
-        }
-        .footer-section a:hover { color: #3498db; }
-        
-        @media (max-width: 768px) {
-            .hero h1 { font-size: 2.5rem; }
-            .hero p { font-size: 1.2rem; }
-            .cta-buttons { flex-direction: column; align-items: center; }
-            .features { padding: 60px 0; }
-            .features h2 { font-size: 2rem; }
-            .features-grid { grid-template-columns: 1fr; gap: 30px; }
-            .stats-grid { grid-template-columns: repeat(2, 1fr); }
-            .cta-section h2 { font-size: 2rem; }
+        .btn:hover { 
+            background: #5a6fd8;
+            transform: translateY(-2px);
         }
     </style>
 </head>
 <body>
-    <section class="hero">
-        <div class="container">
-            <h1>🚀 ยินดีต้อนรับสู่อนาคต</h1>
-            <p>สร้างสรรค์สิ่งที่ยอดเยี่ยมด้วยเทคโนโลยีที่ทันสมัย</p>
-            <div class="cta-buttons">
-                <a href="#features" class="btn btn-primary">🌟 เริ่มต้นเลย</a>
-                <a href="#about" class="btn btn-secondary">📖 เรียนรู้เพิ่มเติม</a>
-            </div>
+    <div class="app">
+        <h1 class="title">🚀 Generated App</h1>
+        <div class="content">
+            <p>This is a template generated based on your request:</p>
+            <p><strong>"${request}"</strong></p>
+            <p>You can customize this code further to meet your specific needs.</p>
+            <button class="btn" onclick="alert('Hello from generated code!')">
+                Click Me!
+            </button>
         </div>
-    </section>
-
-    <section id="features" class="features">
-        <div class="container">
-            <h2>✨ ฟีเจอร์เด่น</h2>
-            <div class="features-grid">
-                <div class="feature-card">
-                    <div class="feature-icon">⚡</div>
-                    <h3>รวดเร็วเหมือนสายฟ้า</h3>
-                    <p>ประสิทธิภาพที่เหนือกว่า ด้วยเทคโนโลยีที่ทันสมัยที่สุด ให้ประสบการณ์ที่ลื่นไหลไร้สะดุด</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">🔒</div>
-                    <h3>ปลอดภัยสูงสุด</h3>
-                    <p>ระบบรักษาความปลอดภัยระดับธนาคาร ข้อมูลของคุณได้รับการปกป้องอย่างเข้มงวด</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">📱</div>
-                    <h3>ใช้งานง่าย</h3>
-                    <p>ออกแบบให้ใช้งานง่าย เข้าใจได้ทันที รองรับทุกอุปกรณ์ ทุกขนาดหน้าจอ</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">🌍</div>
-                    <h3>เข้าถึงได้ทุกที่</h3>
-                    <p>ใช้งานได้ทุกที่ ทุกเวลา บนเว็บ มือถือ แท็บเล็ต พร้อมซิงค์ข้อมูลแบบเรียลไทม์</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">🎨</div>
-                    <h3>ออกแบบสวยงาม</h3>
-                    <p>UI/UX ที่ออกแบบโดยผู้เชี่ยวชาญ ให้ประสบการณ์การใช้งานที่ประทับใจ</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">🚀</div>
-                    <h3>อัปเดตต่อเนื่อง</h3>
-                    <p>ฟีเจอร์ใหม่ๆ เพิ่มขึ้นเรื่อยๆ ตามความต้องการของผู้ใช้ พร้อมการปรับปรุงอย่างสม่ำเสมอ</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section class="stats">
-        <div class="container">
-            <h2>📊 ตัวเลขที่พูดแทนเรา</h2>
-            <div class="stats-grid">
-                <div class="stat-item">
-                    <h3 class="counter" data-target="50000">0</h3>
-                    <p>ผู้ใช้งานที่พอใจ</p>
-                </div>
-                <div class="stat-item">
-                    <h3 class="counter" data-target="1000">0</h3>
-                    <p>โปรเจกต์ที่สำเร็จ</p>
-                </div>
-                <div class="stat-item">
-                    <h3 class="counter" data-target="99">0</h3>
-                    <p>% ความพึงพอใจ</p>
-                </div>
-                <div class="stat-item">
-                    <h3 class="counter" data-target="24">0</h3>
-                    <p>ชั่วโมง ให้บริการ</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section class="cta-section">
-        <div class="container">
-            <h2>🎯 พร้อมเริ่มต้นแล้วหรือยัง?</h2>
-            <p>เข้าร่วมกับผู้ใช้งานหลายพันคนที่เชื่อมั่นในบริการของเรา</p>
-            <a href="#signup" class="btn btn-primary" style="font-size: 1.2rem; padding: 20px 40px;">
-                🚀 เริ่มใช้งานฟรี
-            </a>
-        </div>
-    </section>
-
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-section">
-                    <h3>📞 ติดต่อเรา</h3>
-                    <a href="mailto:info@example.com">📧 info@example.com</a>
-                    <a href="tel:+66123456789">📱 092-123-4567</a>
-                    <a href="#">📍 กรุงเทพฯ ประเทศไทย</a>
-                </div>
-                <div class="footer-section">
-                    <h3>🔗 ลิงก์ด่วน</h3>
-                    <a href="#">เกี่ยวกับเรา</a>
-                    <a href="#">บริการ</a>
-                    <a href="#">ราคา</a>
-                    <a href="#">ติดต่อ</a>
-                </div>
-                <div class="footer-section">
-                    <h3>💼 บริการ</h3>
-                    <a href="#">พัฒนาเว็บไซต์</a>
-                    <a href="#">แอปมือถือ</a>
-                    <a href="#">ออกแบบ UI/UX</a>
-                    <a href="#">ปรึกษาเทคโนโลยี</a>
-                </div>
-                <div class="footer-section">
-                    <h3>🌟 ติดตาม</h3>
-                    <a href="#">Facebook</a>
-                    <a href="#">Twitter</a>
-                    <a href="#">Instagram</a>
-                    <a href="#">LinkedIn</a>
-                </div>
-            </div>
-            <p style="text-align: center; padding-top: 20px; border-top: 1px solid #333; color: #888;">
-                © 2024 บริษัทของเรา. สงวนลิขสิทธิ์.
-            </p>
-        </div>
-    </footer>
-
+    </div>
+    
     <script>
-        // Smooth scrolling
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({ behavior: 'smooth' });
-                }
-            });
-        });
-
-        // Counter animation
-        function animateCounters() {
-            const counters = document.querySelectorAll('.counter');
-            counters.forEach(counter => {
-                const target = parseInt(counter.getAttribute('data-target'));
-                const current = parseInt(counter.textContent);
-                const increment = target / 100;
-                
-                if (current < target) {
-                    counter.textContent = Math.ceil(current + increment);
-                    setTimeout(() => animateCounters(), 20);
-                } else {
-                    counter.textContent = target;
-                }
-            });
-        }
-
-        // Intersection Observer for animations
-        const observerOptions = {
-            threshold: 0.1,
-            rootMargin: '0px 0px -50px 0px'
-        };
-
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    if (entry.target.classList.contains('stats')) {
-                        animateCounters();
-                    }
-                    entry.target.style.opacity = '1';
-                    entry.target.style.transform = 'translateY(0)';
-                }
-            });
-        }, observerOptions);
-
-        // Observe sections
-        document.querySelectorAll('.features, .stats, .cta-section').forEach(section => {
-            section.style.opacity = '0';
-            section.style.transform = 'translateY(30px)';
-            section.style.transition = 'all 0.8s ease';
-            observer.observe(section);
-        });
-
-        // Observe feature cards
-        document.querySelectorAll('.feature-card').forEach(card => {
-            card.style.opacity = '0';
-            card.style.transform = 'translateY(30px)';
-            card.style.transition = 'all 0.6s ease';
-            observer.observe(card);
+        console.log('Generated app loaded successfully!');
+        console.log('Request was: ${request}');
+        
+        // Add your custom JavaScript here
+        document.querySelector('.btn').addEventListener('click', () => {
+            console.log('Button clicked!');
         });
     </script>
 </body>
 </html>`;
     }
 
-    // Handle send message
+    // Send message handler
     async function handleSend() {
       const text = userInput.value.trim();
-      if (!text || isLoading) return;
+      if (!text) return;
 
-      setLoading(true);
+      // Add user message
       addMessage('user', text);
       userInput.value = '';
       userInput.style.height = 'auto';
 
+      // Get AI response
       try {
-        // Check if user is asking for code
-        const codeKeywords = [
-          'สร้าง', 'ทำ', 'เขียน', 'พัฒนา', 'ออกแบบ', 'build', 'create', 'make', 'develop',
-          'เกม', 'เว็บ', 'แอพ', 'โปรแกรม', 'component', 'website', 'app', 'game'
-        ];
+        const response = await simulateAIResponse(text);
         
-        const isCodeRequest = codeKeywords.some(keyword => 
-          text.toLowerCase().includes(keyword.toLowerCase())
+        // Add bot message
+        addMessage('bot', response.message);
+        
+        // Add code if available
+        if (response.code) {
+          setTimeout(() => {
+            addMessage('bot', response.code, true);
+          }, 500);
+        }
+
+        // Store message in history
+        messages.push(
+          { role: 'user', content: text },
+          { role: 'assistant', content: response.message + (response.code ? '\n\n' + response.code : '') }
         );
 
-        if (isCodeRequest) {
-          // Add thinking message
-          addMessage('bot', '🤔 กำลังคิดและเขียนโค้ดให้คุณ...');
-          
-          // Simulate AI processing time
-          await new Promise(resolve => setTimeout(resolve, 2000));
-          
-          // Generate code
-          const code = await generateCode(text);
-          addMessage('bot', code, true);
-          
-          // Add explanation
-          await new Promise(resolve => setTimeout(resolve, 500));
-          addMessage('bot', `✅ **โค้ดเสร็จแล้ว!** 
-
-ผมได้สร้างโค้ดตามที่คุณต้องการแล้ว โค้ดนี้มีฟีเจอร์ต่างๆ ดังนี้:
-
-• 📱 **Responsive Design** - ใช้งานได้บนมือถือ
-• 🎨 **Modern UI** - ออกแบบทันสมัย
-• ⚡ **Interactive** - มีฟีเจอร์เชิงโต้ตอบ
-• 🔧 **Clean Code** - โค้ดเขียนอย่างเป็นระเบียบ
-
-คุณสามารถ **copy โค้ด** ไปใช้ได้เลย หรือขอให้ผมปรับแต่งเพิ่มเติม!`);
-        } else {
-          // Regular chat response
-          const responses = [
-            `สวัสดีครับ! ผมสามารถช่วยคุณสร้างโค้ดได้หลากหลาย เช่น:
-
-🌐 **เว็บไซต์**: Landing page, Portfolio, Dashboard
-⚛️ **React**: Components, Forms, Apps  
-🎮 **เกม**: Snake, Pong, Puzzle games
-🎨 **UI/UX**: Modern designs, Animations
-
-ลองบอกผมว่าคุณต้องการอะไร เช่น "สร้างเกมงูกินหาง" หรือ "ทำเว็บไซต์โปรไฟล์"`,
-
-            `ผมพร้อมช่วยคุณเขียนโค้ดแล้ว! 💻
-
-**ตัวอย่างคำสั่งที่ใช้ได้:**
-• "สร้างแคลคูเลเตอร์"
-• "ทำเกมโปงพาง" 
-• "เขียน React component"
-• "ออกแบบ landing page"
-• "พัฒนาแอพสภาพอากาศ"
-
-แค่บอกผมว่าต้องการอะไร ผมจะเขียนโค้ดให้ทันที! ⚡`,
-
-            `ยินดีที่ได้ช่วยเหลือครับ! 🤝
-
-ผมเป็นผู้ช่วย AI ที่เชี่ยวชาญด้านการเขียนโค้ด:
-• ✅ HTML/CSS/JavaScript
-• ✅ React Components  
-• ✅ Responsive Design
-• ✅ Interactive Games
-• ✅ Modern UI/UX
-
-พิมพ์คำสั่งที่ต้องการ แล้วผมจะสร้างโค้ดที่สมบูรณ์ให้เลย!`
-          ];
-          
-          addMessage('bot', responses[Math.floor(Math.random() * responses.length)]);
-        }
       } catch (error) {
-        addMessage('bot', '❌ เกิดข้อผิดพลาดในการประมวลผล กรุณาลองใหม่อีกครั้ง');
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    // Set loading state
-    function setLoading(loading) {
-      isLoading = loading;
-      sendBtn.disabled = loading;
-      if (loading) {
-        sendText.style.display = 'none';
-        loadingSpinner.style.display = 'block';
-      } else {
-        sendText.style.display = 'block';
-        loadingSpinner.style.display = 'none';
+        addMessage('bot', 'ขออภัยครับ เกิดข้อผิดพลาด: ' + error.message);
       }
     }
 
     // Event listeners
     sendBtn.addEventListener('click', handleSend);
-    userInput.addEventListener('keypress', (e) => {
+    userInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         handleSend();
       }
     });
 
-    // Initialize with welcome message
-    document.addEventListener('DOMContentLoaded', () => {
-      updateCodeStats('Web', 0);
-    });
-  </script>
-</body>
-</html>`;
-    }
-
-    // Send message
-    async function sendMessage() {
-      const text = userInput.value.trim();
-      if (!text || isLoading) return;
-
-      setLoading(true);
-      addMessage('user', text);
-      userInput.value = '';
-      userInput.style.height = 'auto';
-
-      try {
-        // Check if user is asking for code
-        const codeKeywords = [
-          'สร้าง', 'ทำ', 'เขียน', 'พัฒนา', 'ออกแบบ', 'build', 'create', 'make', 'develop',
-          'เกม', 'เว็บ', 'แอพ', 'โปรแกรม', 'component', 'website', 'app', 'game'
-        ];
-        
-        const isCodeRequest = codeKeywords.some(keyword => 
-          text.toLowerCase().includes(keyword.toLowerCase())
-        );
-
-        if (isCodeRequest) {
-          addMessage('bot', '🤔 กำลังสร้างโค้ดให้คุณ...');
-          await new Promise(resolve => setTimeout(resolve, 1500));
-          
-          const code = await generateCode(text);
-          addMessage('bot', code, true);
-          
-          await new Promise(resolve => setTimeout(resolve, 500));
-          addMessage('bot', '✅ โค้ดเสร็จแล้ว! คุณสามารถ copy ไปใช้ได้เลย หรือขอให้ผมปรับแต่งเพิ่มเติม');
-        } else {
-          const responses = [
-            'สวัสดีครับ! ผมสามารถช่วยคุณสร้างโค้ดได้ ลองพิมพ์ว่า "สร้างเกมงูกินหาง" หรือ "ทำเว็บไซต์" ดูครับ',
-            'ผมพร้อมช่วยเขียนโค้ดให้คุณ! ไม่ว่าจะเป็นเว็บไซต์ แอพ เกม หรือ React component',
-            'ต้องการให้ผมช่วยเขียนโค้ดอะไรครับ? เช่น แคลคูเลเตอร์ เกม หรือเว็บไซต์โปรไฟล์'
-          ];
-          addMessage('bot', responses[Math.floor(Math.random() * responses.length)]);
-        }
-      } catch (error) {
-        addMessage('bot', '❌ เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง');
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    function setLoading(loading) {
-      isLoading = loading;
-      sendBtn.disabled = loading;
-      if (loading) {
-        sendText.style.display = 'none';
-        loadingSpinner.style.display = 'block';
-      } else {
-        sendText.style.display = 'block';
-        loadingSpinner.style.display = 'none';
-      }
-    }
-
-    // Event listeners
-    sendBtn.addEventListener('click', sendMessage);
-    userInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        sendMessage();
-      }
-    });
+    // Initialize
+    optimizeParameters();
+    generateCodeBtn.click(); // Generate initial code example
   </script>
 </body>
 </html>
