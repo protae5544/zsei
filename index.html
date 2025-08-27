@@ -1,113 +1,195 @@
-import pdfplumber
-import re
-from typing import List, Dict
-
-# ฟังก์ชันแปลงข้อความเป็นชื่อฟิลด์ที่เหมาะสม
-def generate_field_name(text: str, index: int) -> str:
-    if not text:
-        return f"field_{index}"  # ใช้ชื่อทั่วไปถ้าไม่มีบริบท
-    # ลบช่องว่างและอักขระพิเศษ แปลงเป็น snake_case
-    text = re.sub(r'[^\w\s]', '', text.lower()).strip()
-    text = re.sub(r'\s+', '_', text)
-    return text or f"field_{index}"
-
-# ฟังก์ชันดึงข้อมูลฟิลด์จาก PDF
-def extract_fields_from_pdf(pdf_path: str) -> List[Dict]:
-    fields = []
-    with pdfplumber.open(pdf_path) as pdf:
-        for page in pdf.pages:
-            # ดึงข้อมูลฟิลด์ (AcroForm fields)
-            if pdf.doc.acroform:
-                acro_fields = pdf.doc.acroform.get_fields()
-                for field_name, field in acro_fields.items():
-                    field_info = {
-                        "name": field_name or "",
-                        "type": field.get("/FT", "/Tx"),  # /Tx = text, /Sig = signature, /Btn = checkbox
-                        "rect": field.get("/Rect")  # [x0, y0, x1, y1]
-                    }
-                    fields.append(field_info)
-            
-            # ดึงข้อความใกล้ฟิลด์เพื่อช่วยตั้งชื่อ (ถ้าไม่มีชื่อ)
-            words = page.extract_words()
-            for i, field in enumerate(fields):
-                if not field["name"]:  # ถ้าไม่มีชื่อฟิลด์
-                    x0, y0, x1, y1 = field["rect"]
-                    # ค้นหาคำที่อยู่ใกล้ฟิลด์ (เช่น ด้านซ้ายหรือด้านบน)
-                    nearby_text = ""
-                    for word in words:
-                        if abs(word["y0"] - y0) < 20 and word["x0"] < x0:  # ข้อความด้านซ้าย
-                            nearby_text += word["text"] + " "
-                        elif abs(word["x0"] - x0) < 20 and word["y0"] > y0:  # ข้อความด้านบน
-                            nearby_text += word["text"] + " "
-                    field["name"] = generate_field_name(nearby_text.strip(), i)
-                    # คำนวณ width, height
-                    field["width"] = x1 - x0
-                    field["height"] = y1 - y0
-                    field["x"] = x0
-                    field["y"] = y0  # PDF ใช้ y จากด้านล่าง ต้องแปลงถ้าใช้ HTML
-    return fields
-
-# ฟังก์ชันสร้าง HTML จากข้อมูลฟิลด์
-def generate_html_form(fields: List[Dict], output_path: str, form_title: str = "PDF Form"):
-    html = f"""<!DOCTYPE html>
-<html>
+<!DOCTYPE html>
+<html lang="th">
 <head>
   <meta charset="UTF-8">
-  <title>{form_title}</title>
+  <title>GLM-4.5 Chatbot (Smart Output)</title>
+  <link href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css" rel="stylesheet"/>
   <style>
-    body {{ font-family: Arial, sans-serif; }}
-    #customform {{ width: 595px; height: 842px; position: relative; border: 1px solid #ccc; }} /* A4 size in pixels at 72dpi */
+    body {background:#f5f7fb;font-family:sans-serif;}
+    .glm-chatbox { max-width:460px;margin:40px auto;border:1px solid #bbb;border-radius:8px;padding:12px;background:#fafaff; }
+    .glm-messages { max-height:400px;overflow-y:auto;margin-bottom:10px;display:flex;flex-direction:column;gap:6px;}
+    .glm-msg {padding:8px 12px;border-radius:6px;max-width:90%;word-break:break-word;white-space:pre-wrap;}
+    .glm-msg.user {background:#d1e7ff;align-self:flex-end;}
+    .glm-msg.bot {background:#e9ecef;align-self:flex-start;}
+    .glm-inputrow {display:flex;gap:8px;}
+    .glm-inpt {flex:1;padding:8px;border:1px solid #bbb;border-radius:5px;}
+    .glm-btn {padding:8px 18px;background:#2a72ff;color:white;border:none;border-radius:4px;cursor:pointer;}
+    .glm-btn:active {background:#1649a3;}
+    .glm-controls {display:flex;gap:8px;margin-bottom:8px;}
+    .glm-select {padding:6px 12px;border-radius:4px;border:1px solid #bbb;}
+    pre {margin:8px 0;}
   </style>
 </head>
 <body>
-  <div id="customform">
-    <h2 style="text-align: center;">{form_title}</h2>
-"""
-    
-    for field in fields:
-        field_type = field["type"]
-        tag = "text-field"
-        input_type = "text"
-        extra_attrs = ""
-        
-        if field_type == "/Tx":  # Text field
-            tag = "text-field"
-            input_type = "text"
-        elif field_type == "/Sig":  # Signature field
-            tag = "signature-field"
-            input_type = "text"
-        elif field_type == "/Btn":  # Checkbox
-            tag = "checkbox-field"
-            input_type = "checkbox"
-        elif field_type == "/DA":  # Date (สมมติว่าเป็น date)
-            tag = "date-field"
-            input_type = "date"
-            extra_attrs = 'format="DD/MM/YYYY"'
-        
-        # แปลง y จาก PDF (จากด้านล่าง) เป็น HTML (จากด้านบน)
-        html_y = 842 - field["y"] - field["height"]  # A4 height = 842px
-        
-        # เพิ่ม label และ field
-        html += f"""
-    <label for="{field['name']}" style="position: absolute; left: {field['x'] - 100}px; top: {html_y}px;">{field['name'].replace('_', ' ')}:</label>
-    <{tag} name="{field['name']}" id="{field['name']}" type="{input_type}" style="position: absolute; left: {field['x']}px; top: {html_y}px; width: {field['width']}px; height: {field['height']}px;" {extra_attrs}></{tag}>
-"""
-    
-    html += """
+  <div class="glm-chatbox">
+    <div class="glm-controls">
+      <label>
+        Output Style
+        <select id="output-mode" class="glm-select">
+          <option value="chat">สนทนาปกติ (Chat)</option>
+          <option value="code">โค้ดเท่านั้น (Code Only)</option>
+          <option value="explain+code">อธิบาย+โค้ด (Explain + Code)</option>
+          <option value="json">JSON Only</option>
+        </select>
+      </label>
+    </div>
+    <div class="glm-messages" id="glm-messages"></div>
+    <form class="glm-inputrow" id="glm-form" autocomplete="off">
+      <input class="glm-inpt" id="glm-input" placeholder="พิมพ์ข้อความ..."/>
+      <button class="glm-btn" id="glm-send" type="submit">ส่ง</button>
+    </form>
   </div>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-javascript.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-markdown.min.js"></script>
+  <script>
+    // --- CONFIG ---
+    const API_KEY = "129f947ce9fd44c28a3358a73dbb0173.1TQiPjq06MUytu5P";
+    const ENDPOINT = "https://open.bigmodel.cn/api/paas/v4/chat/completions";
+    // --- STATE ---
+    let outputMode = "chat";
+    let systemPrompt = getSystemPrompt(outputMode);
+    let conversation = [
+      {
+        role: "system",
+        content: `You are a senior engineer who specializes in coding and web design. 
+You always provide clear, efficient, and well-structured code with best practices. 
+Your answers should be concise, professional, and if user speaks Thai, you reply in Thai; otherwise, use English.
+Give practical code-focused solutions and advice.`
+      }
+    ];
+    // --- ELEMENTS ---
+    const messagesDiv = document.getElementById('glm-messages');
+    const input = document.getElementById('glm-input');
+    const form = document.getElementById('glm-form');
+    const outputSelect = document.getElementById('output-mode');
+    // --- FUNCTIONS ---
+    function getSystemPrompt(mode) {
+      switch (mode) {
+        case "chat":
+          return `You are a senior engineer who specializes in coding and web design. 
+Always provide clear, efficient, and well-structured code with best practices when relevant.  
+If the user speaks Thai, answer in Thai; otherwise, use English.
+Respond in a conversational style.`;
+        case "code":
+          return `You are a senior engineer. 
+Return only the code in language-specific code blocks (e.g., \`\`\`python ...\`\`\`). 
+Do not add explanation or comments unless requested.`;
+        case "explain+code":
+          return `You are a senior engineer.
+Briefly explain your approach first in 1-2 sentences, then provide the code in the proper code block (e.g., \`\`\`python ...\`\`\`). 
+If the user speaks Thai, explain in Thai; otherwise, use English.`;
+        case "json":
+          return `You are a senior engineer. 
+Return only a JSON object in a \`\`\`json ...\`\`\` code block, no extra explanation.`;
+        default:
+          return `You are a senior engineer who specializes in coding and web design. 
+If the user speaks Thai, answer in Thai; otherwise, use English.`;
+      }
+    }
+    function setOutputMode(mode) {
+      outputMode = mode;
+      systemPrompt = getSystemPrompt(mode);
+      // update system prompt ใน conversation (ลบอันเก่า ใส่อันใหม่)
+      conversation = conversation.filter(msg => msg.role !== "system");
+      conversation.unshift({role: "system", content: systemPrompt});
+    }
+    outputSelect.onchange = e => setOutputMode(e.target.value);
+
+    // -- Render messages with code highlight --
+    function renderChat() {
+      messagesDiv.innerHTML = '';
+      conversation.filter(msg => msg.role !== "system").forEach(msg => {
+        const div = document.createElement('div');
+        div.className = "glm-msg " + (msg.role === "user" ? "user" : "bot");
+        div.innerHTML = (msg.role === "assistant")
+          ? renderAssistant(msg.content)
+          : escapeHTML(msg.content);
+        messagesDiv.appendChild(div);
+      });
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      Prism.highlightAll();
+    }
+    // Render assistant output, highlight code blocks
+    function renderAssistant(text) {
+      // แยก code block (```lang ... ```)
+      return text.replace(/```(\w+)?\n([\s\S]*?)```/g, (m, lang, code) => {
+        lang = lang || "plaintext";
+        return `<pre><code class="language-${lang}">${Prism.highlight(escapeHTML(code), Prism.languages[lang] || Prism.languages.plaintext, lang)}</code></pre>`;
+      }).replace(/\n/g, "<br>");
+    }
+    function escapeHTML(str) {
+      return str.replace(/[&<>"']/g, ch => (
+        { "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[ch]
+      ));
+    }
+
+    // --- Send to GLM4.5 (with stream) ---
+    async function sendToGLM(msg) {
+      conversation.push({role: "user", content: msg});
+      renderChat();
+      input.value = "";
+      input.disabled = true;
+      // Add placeholder for streaming reply
+      conversation.push({role: "assistant", content: ""});
+      renderChat();
+      const index = conversation.length - 1;
+      try {
+        const response = await fetch(ENDPOINT, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + API_KEY
+          },
+          body: JSON.stringify({
+            model: "glm-4.5",
+            messages: conversation.slice(-20),
+            temperature: 0.8,
+            stream: true
+          })
+        });
+        if (!response.body) throw new Error("No stream body");
+        const reader = response.body.getReader();
+        let decoder = new TextDecoder();
+        let done = false, buffer = '';
+        while (!done) {
+          const {value, done: doneReading} = await reader.read();
+          done = doneReading;
+          if (value) {
+            buffer += decoder.decode(value, {stream:true});
+            let parts = buffer.split("\n");
+            buffer = parts.pop(); // keep last part in buffer (may be incomplete)
+            for (let line of parts) {
+              line = line.trim();
+              if (!line.startsWith("data:") || line === "data: [DONE]") continue;
+              try {
+                const j = JSON.parse(line.replace(/^data:\s*/,""));
+                const delta = j.choices?.[0]?.delta?.content || "";
+                if (delta) {
+                  conversation[index].content += delta;
+                  renderChat();
+                }
+              } catch {}
+            }
+          }
+        }
+      } catch (e) {
+        conversation[index].content = "เกิดข้อผิดพลาด: " + e.message;
+        renderChat();
+      }
+      input.disabled = false;
+      input.focus();
+    }
+    // --- Form submit handler ---
+    form.onsubmit = e => {
+      e.preventDefault();
+      const msg = input.value.trim();
+      if (!msg) return;
+      sendToGLM(msg);
+    };
+    // --- Initial render ---
+    renderChat();
+  </script>
 </body>
 </html>
-"""
-    
-    with open(output_path, "w", encoding="utf-8") as f:
-        f.write(html)
-    print(f"HTML form generated at: {output_path}")
-
-# ตัวอย่างการใช้งาน
-pdf_path = "bt44.pdf"  # แทนที่ด้วย path ของ PDF (เช่น บต.44)
-output_html_path = "bt44_form.html"
-form_title = "บต.44 - แจ้งการเปลี่ยนแปลงนายจ้าง"
-
-# ดึงข้อมูลฟิลด์และสร้าง HTML
-fields = extract_fields_from_pdf(pdf_path)
-generate_html_form(fields, output_html_path, form_title)
