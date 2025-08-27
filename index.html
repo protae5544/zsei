@@ -45,8 +45,7 @@
   <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-markdown.min.js"></script>
   <script>
     // --- CONFIG ---
-    const API_KEY = "129f947ce9fd44c28a3358a73dbb0173.1TQiPjq06MUytu5P";
-    const ENDPOINT = "https://open.bigmodel.cn/api/paas/v4/chat/completions";
+    const ENDPOINT = "/.netlify/functions/glm-chat";
     // --- STATE ---
     let outputMode = "chat";
     let systemPrompt = getSystemPrompt(outputMode);
@@ -127,60 +126,35 @@ If the user speaks Thai, answer in Thai; otherwise, use English.`;
 
     // --- Send to GLM4.5 (with stream) ---
     async function sendToGLM(msg) {
-      conversation.push({role: "user", content: msg});
-      renderChat();
-      input.value = "";
-      input.disabled = true;
-      // Add placeholder for streaming reply
-      conversation.push({role: "assistant", content: ""});
-      renderChat();
-      const index = conversation.length - 1;
-      try {
-        const response = await fetch(ENDPOINT, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer " + API_KEY
-          },
-          body: JSON.stringify({
-            model: "glm-4.5",
-            messages: conversation.slice(-20),
-            temperature: 0.8,
-            stream: true
-          })
-        });
-        if (!response.body) throw new Error("No stream body");
-        const reader = response.body.getReader();
-        let decoder = new TextDecoder();
-        let done = false, buffer = '';
-        while (!done) {
-          const {value, done: doneReading} = await reader.read();
-          done = doneReading;
-          if (value) {
-            buffer += decoder.decode(value, {stream:true});
-            let parts = buffer.split("\n");
-            buffer = parts.pop(); // keep last part in buffer (may be incomplete)
-            for (let line of parts) {
-              line = line.trim();
-              if (!line.startsWith("data:") || line === "data: [DONE]") continue;
-              try {
-                const j = JSON.parse(line.replace(/^data:\s*/,""));
-                const delta = j.choices?.[0]?.delta?.content || "";
-                if (delta) {
-                  conversation[index].content += delta;
-                  renderChat();
-                }
-              } catch {}
-            }
-          }
-        }
-      } catch (e) {
-        conversation[index].content = "เกิดข้อผิดพลาด: " + e.message;
-        renderChat();
-      }
-      input.disabled = false;
-      input.focus();
-    }
+  conversation.push({role: "user", content: msg});
+  renderChat();
+  input.value = "";
+  input.disabled = true;
+  // Add placeholder for reply
+  conversation.push({role: "assistant", content: ""});
+  renderChat();
+  const index = conversation.length - 1;
+  try {
+    const response = await fetch(ENDPOINT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        messages: conversation.slice(-20)
+      })
+    });
+    const data = await response.json();
+    const reply = data.choices?.[0]?.message?.content || "No reply";
+    conversation[index].content = reply;
+    renderChat();
+  } catch (e) {
+    conversation[index].content = "เกิดข้อผิดพลาด: " + e.message;
+    renderChat();
+  }
+  input.disabled = false;
+  input.focus();
+}
     // --- Form submit handler ---
     form.onsubmit = e => {
       e.preventDefault();
