@@ -1,9 +1,0 @@
-# netlify.toml
-[build]
-  command = "npm install"
-  publish = "."
-
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
